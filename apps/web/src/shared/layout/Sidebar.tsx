@@ -1,4 +1,4 @@
-export type Seccion = "equipos" | "servicios" | "ordenes" | "cuadrillas";
+export type Seccion = "empleados" | "equipos" | "servicios" | "ordenes" | "cuadrillas";
 
 interface SidebarProps {
     seccion: Seccion;
@@ -15,6 +15,7 @@ interface Enlace {
 
 const gestion: Enlace[] = [{ id: "ordenes", etiqueta: "Órdenes", icono: "▤" }];
 const recursos: Enlace[] = [
+    { id: "empleados", etiqueta: "Empleados", icono: "♙" },
     { id: "equipos", etiqueta: "Equipos", icono: "▣" },
     { id: "cuadrillas", etiqueta: "Cuadrillas", icono: "♧" },
     { id: "servicios", etiqueta: "Servicios", icono: "⚒" },
@@ -22,7 +23,7 @@ const recursos: Enlace[] = [
 
 export function Sidebar({ seccion, onNavigate, abierto, puedeGestionarCuadrillas }: Readonly<SidebarProps>) {
     function enlaces(items: Enlace[]) {
-        return items.filter(item => item.id !== "cuadrillas" || puedeGestionarCuadrillas).map(item => (
+        return items.filter(item => (item.id !== "cuadrillas" && item.id !== "empleados") || puedeGestionarCuadrillas).map(item => (
             <button
                 key={item.id}
                 type="button"

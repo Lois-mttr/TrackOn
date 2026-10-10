@@ -16,6 +16,7 @@ interface MainLayoutProps {
 }
 
 const etiquetas: Record<Seccion, string> = {
+    empleados: "Empleados",
     ordenes: "Órdenes",
     equipos: "Equipos",
     servicios: "Servicios",

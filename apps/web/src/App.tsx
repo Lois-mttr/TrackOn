@@ -1,9 +1,11 @@
 import "./App.css";
+import "./shared/styles/empleados.css";
 import "./shared/styles/figma-ui.css";
 import "./shared/styles/responsive.css";
 import "./shared/styles/asignaciones.css";
 import { useEffect, useState } from "react";
 import EquiposManager from "./features/equipos/EquiposManager";
+import EmpleadosManager from "./features/empleados/EmpleadosManager";
 import ServiciosManager from "./features/servicios/ServiciosManager";
 import OrdenesManager from "./features/ordenes/OrdenesManager";
 import CuadrillasManager from "./features/cuadrillas/CuadrillasManager";
@@ -20,6 +22,9 @@ interface ModuleContentProps {
 
 function ModuleContent({ seccion, puedeGestionar }: Readonly<ModuleContentProps>) {
     switch (seccion) {
+        case "empleados":
+            return puedeGestionar ? <EmpleadosManager /> : <p role="alert">No tienes permisos para acceder a este módulo.</p>;
+
         case "equipos":
             return <EquiposManager puedeGestionar={puedeGestionar} />;
 
@@ -78,7 +83,7 @@ export default function App() {
     }, []);
 
     function navegar(destino: Seccion) {
-        if (destino === "cuadrillas" && !puedeGestionar) {
+        if ((destino === "cuadrillas" || destino === "empleados") && !puedeGestionar) {
             return;
         }
 

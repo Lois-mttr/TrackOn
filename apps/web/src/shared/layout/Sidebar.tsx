@@ -1,4 +1,5 @@
 export type Seccion = "agenda" | "administracion" | "auditoria" | "dashboard" | "materiales" | "clientes" | "empleados" | "equipos" | "servicios" | "ordenes" | "cuadrillas";
+export type Seccion = "clientes" | "equipos" | "servicios" | "ordenes" | "cuadrillas";
 
 interface SidebarProps {
     seccion: Seccion;

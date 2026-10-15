@@ -23,6 +23,8 @@ const etiquetas: Record<Seccion, string> = {
     clientes: "Clientes",
     empleados: "Empleados",
     ordenes: "Órdenes",
+    ordenes: "Órdenes de trabajo",
+    clientes: "Clientes",
     equipos: "Equipos",
     servicios: "Servicios",
     cuadrillas: "Cuadrillas",

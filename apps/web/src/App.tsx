@@ -2,6 +2,8 @@ import "./App.css";
 import "./shared/styles/ordenes-equipos.css";
 import "./shared/styles/clientes.css";
 import "./shared/styles/empleados.css";
+import "./shared/styles/clientes.css";
+import "./shared/styles/ordenes-equipos.css";
 import "./shared/styles/figma-ui.css";
 import "./shared/styles/responsive.css";
 import "./shared/styles/asignaciones.css";
@@ -50,6 +52,9 @@ function ModuleContent({ seccion, puedeGestionar, ordenInicial, onOrden, onCuadr
 
         case "empleados":
             return puedeGestionar ? <EmpleadosManager /> : <p role="alert">No tienes permisos para acceder a este módulo.</p>;
+
+        case "clientes":
+            return <ClientesManager puedeGestionar={puedeGestionar} />;
 
         case "equipos":
             return <EquiposManager puedeGestionar={puedeGestionar} />;

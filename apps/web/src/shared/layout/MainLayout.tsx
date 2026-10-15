@@ -8,6 +8,7 @@ interface MainLayoutProps {
     seccion: Seccion;
     menuAbierto: boolean;
     puedeGestionarCuadrillas: boolean;
+    puedeAdministrar?: boolean;
     onNavigate: (seccion: Seccion) => void;
     onOpenMenu: () => void;
     onCloseMenu: () => void;
@@ -16,6 +17,10 @@ interface MainLayoutProps {
 }
 
 const etiquetas: Record<Seccion, string> = {
+    agenda: "Agenda", administracion: "Usuarios y acceso", auditoria: "Auditoría",
+    dashboard: "Dashboard",
+    materiales: "Materiales",
+    clientes: "Clientes",
     empleados: "Empleados",
     ordenes: "Órdenes",
     equipos: "Equipos",
@@ -29,6 +34,7 @@ export function MainLayout({
     seccion,
     menuAbierto,
     puedeGestionarCuadrillas,
+    puedeAdministrar,
     onNavigate,
     onOpenMenu,
     onCloseMenu,
@@ -52,11 +58,12 @@ export function MainLayout({
                 abierto={menuAbierto}
                 onNavigate={onNavigate}
                 puedeGestionarCuadrillas={puedeGestionarCuadrillas}
+                puedeAdministrar={puedeAdministrar}
             />
             <main className="workspace">
-                {seccion !== "ordenes" && (
+                {seccion !== "ordenes" && seccion !== "dashboard" && (
                     <div className="tk-context-breadcrumb">
-                        Recursos <span aria-hidden="true">›</span> <strong>{etiquetas[seccion]}</strong>
+                        {seccion === 'agenda' ? 'Operaciones' : ['administracion', 'auditoria'].includes(seccion) ? 'Administración' : 'Recursos'} <span aria-hidden="true">›</span> <strong>{etiquetas[seccion]}</strong>
                     </div>
                 )}
                 {children}

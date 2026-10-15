@@ -9,6 +9,8 @@ const mocks = vi.hoisted(() => ({
     updateManyOrden: vi.fn(),
     createHistorial: vi.fn(),
     findUniqueOrThrowOrden: vi.fn(),
+    findManyEquipos: vi.fn(),
+    audit: vi.fn(), destinatarios: vi.fn(), notificar: vi.fn(), finalizarAsignacion: vi.fn(),
 }));
 
 vi.mock('../src/infrastructure/prisma.js', () => ({
@@ -26,6 +28,9 @@ vi.mock('../src/infrastructure/prisma.js', () => ({
                 findUniqueOrThrow: mocks.findUniqueOrThrowOrden,
             },
             historialEstado: { create: mocks.createHistorial },
+            ordenEquipo: { findMany: mocks.findManyEquipos },
+            auditoria: { create: mocks.audit }, usuario: { findMany: mocks.destinatarios },
+            notificacion: { createMany: mocks.notificar }, asignacion: { updateMany: mocks.finalizarAsignacion },
         }),
     },
 }));
@@ -44,6 +49,8 @@ beforeEach(() => {
     mocks.updateManyOrden.mockResolvedValue({ count: 1 });
     mocks.findUniqueOrThrowOrden.mockResolvedValue({ id: 1, numero: 2n });
     mocks.createHistorial.mockResolvedValue({ id: 1 });
+    mocks.findManyEquipos.mockResolvedValue([{ id: 1, diagnostico: 'Diagnóstico completo', resultado: 'Servicio completado', servicios: [{ id: 1 }], evidencias: [] }]);
+    mocks.destinatarios.mockResolvedValue([]);
 });
 
 describe('Persistencia de órdenes', () => {
@@ -119,6 +126,21 @@ describe('Persistencia de órdenes', () => {
         mocks.updateManyOrden.mockResolvedValue({ count: 0 });
         await expect(repository.cambiarEstado(14, 'PENDIENTE', 'CANCELADA', 3, 'Cancelación', 9))
             .rejects.toMatchObject({ statusCode: 409 });
+        expect(mocks.createHistorial).not.toHaveBeenCalled();
+    });
+
+    it.each([
+        [],
+        [{ id: 1, diagnostico: null, resultado: 'Completo', servicios: [{ id: 1 }], evidencias: [] }],
+        [{ id: 1, diagnostico: 'Correcto', resultado: ' ', servicios: [{ id: 1 }], evidencias: [] }],
+        [{ id: 1, diagnostico: 'Correcto', resultado: 'Completo', servicios: [], evidencias: [] }],
+    ].map(equipos => [equipos]))('impide revisar y cerrar intervenciones incompletas: %j', async equipos => {
+        mocks.findManyEquipos.mockResolvedValue(equipos);
+        for (const estado of ['EN_REVISION', 'CERRADA'] as const) {
+            await expect(repository.cambiarEstado(14, 'EN_EJECUCION', estado, 3, 'Revisión técnica', 9))
+                .rejects.toMatchObject({ statusCode: 409 });
+        }
+        expect(mocks.updateManyOrden).not.toHaveBeenCalled();
         expect(mocks.createHistorial).not.toHaveBeenCalled();
     });
 });

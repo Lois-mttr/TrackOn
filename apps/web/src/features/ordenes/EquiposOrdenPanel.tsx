@@ -1,4 +1,7 @@
 import { useEffect, useState, type SyntheticEvent } from 'react';
+import TrabajoEquipoPanel from './TrabajoEquipoPanel';
+import EvidenciasPanel from './EvidenciasPanel';
+import EquipoProvisionalForm from './EquipoProvisionalForm';
 import {
     guardarDiagnosticoOrden,
     listarEquiposDisponiblesOrden,
@@ -33,6 +36,7 @@ export default function EquiposOrdenPanel({ orden, puedeGestionar }: Readonly<Pr
     const [guardando, setGuardando] = useState(false);
     const [error, setError] = useState('');
     const [aviso, setAviso] = useState('');
+    const [provisional, setProvisional] = useState(false);
 
     const puedeVincular = puedeGestionar && ['PENDIENTE', 'ASIGNADA', 'EN_EJECUCION'].includes(orden.estadoCodigo);
     const puedeDiagnosticar = orden.estadoCodigo === 'EN_EJECUCION';
@@ -132,6 +136,8 @@ export default function EquiposOrdenPanel({ orden, puedeGestionar }: Readonly<Pr
                             {disponibles.length === 0 && <p className="tk-equipo-ayuda">No hay más equipos activos de esta ubicación disponibles para vincular.</p>}
                         </form>
                     )}
+                    {puedeDiagnosticar && (provisional ? <EquipoProvisionalForm ordenId={orden.id} onCancel={() => setProvisional(false)} onSaved={registro => { setRegistros(actual => [...actual, registro]); setProvisional(false); }} /> :
+                        <button type="button" className="secondary-button" onClick={() => setProvisional(true)}>+ Identificar equipo provisional</button>)}
                     {registros.length === 0 ? (
                         <p className="tk-equipo-vacio">Todavía no hay equipos vinculados a esta orden.</p>
                     ) : (
@@ -154,6 +160,8 @@ export default function EquiposOrdenPanel({ orden, puedeGestionar }: Readonly<Pr
                                         {item.observaciones && <p><b>Observaciones:</b> {item.observaciones}</p>}
                                         {item.resultado && <p><b>Resultado:</b> {item.resultado}</p>}
                                     </div>}
+                                    <TrabajoEquipoPanel ordenId={orden.id} registroId={item.id} puedeRegistrar={puedeDiagnosticar} />
+                                    <EvidenciasPanel ordenId={orden.id} registroId={item.id} puedeCargar={puedeDiagnosticar} puedeRevisar={puedeGestionar && orden.estadoCodigo === 'EN_REVISION'} />
                                     {puedeDiagnosticar && editandoId !== item.id && (
                                         <button type="button" className="tk-action-button" onClick={() => editar(item)}>
                                             {item.diagnostico ? 'Editar diagnóstico' : 'Registrar diagnóstico'}

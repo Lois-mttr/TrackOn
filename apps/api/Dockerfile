@@ -83,6 +83,8 @@ COPY --from=production-deploy \
     --chown=node:node \
     /out ./
 
+RUN mkdir -p /app/storage/evidencias && chown -R node:node /app/storage
+
 USER node
 
 EXPOSE 3000

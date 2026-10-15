@@ -2,6 +2,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import {
     cleanup,
+    act,
     fireEvent,
     render,
     screen,
@@ -72,6 +73,20 @@ afterEach(() => {
 });
 
 describe("Gestión de Servicios", () => {
+    it('conserva el último filtro aunque una consulta anterior termine después', async () => {
+        render(<ServiciosManager />);
+        await cargarListado();
+        let resolver!: (valor: ReturnType<typeof pagina>) => void;
+        mocks.listarServicios.mockReturnValueOnce(new Promise(resolve => { resolver = resolve; })).mockResolvedValueOnce(pagina([]));
+        fireEvent.change(screen.getByLabelText('Filtrar por estado'), { target: { value: 'activos' } });
+        fireEvent.change(screen.getByLabelText('Filtrar por estado'), { target: { value: 'inactivos' } });
+        await screen.findByText('No hay servicios que coincidan.');
+        await act(async () => { resolver(pagina()); });
+        expect(screen.queryByText('Mantenimiento preventivo')).toBeNull();
+        expect((screen.getByLabelText('Filtrar por estado') as HTMLSelectElement).value).toBe('inactivos');
+        fireEvent.click(screen.getByRole('button', { name: 'Limpiar' }));
+        await waitFor(() => expect(mocks.listarServicios).toHaveBeenLastCalledWith('todos', ''));
+    });
     it("consulta el catálogo al cargar", async () => {
         render(<ServiciosManager />);
 

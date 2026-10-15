@@ -10,10 +10,10 @@
     --color-neutral-0: #ffffff;
     --color-neutral-100: #f5f6f8;
     --color-neutral-200: #e6e2ec;
-    --color-neutral-600: #666b73;
+    --color-neutral-600: #454b55;
     --color-neutral-900: #202124;
     --ink: #202124;
-    --muted: #666b73;
+    --muted: var(--color-neutral-600);
     --line: #e6e2ec;
     --green: #129fdc;
     --green-dark: #087db5;
@@ -438,7 +438,7 @@ td span {
 }
 
 .empty {
-    color: #666b73;
+    color: var(--color-neutral-600, #454b55);
     padding: 48px 24px;
     text-align: center;
     font-weight: 400;
@@ -818,7 +818,7 @@ td span {
 
 .table-wrap th {
     padding: 14px 16px;
-    color: #666b73;
+    color: var(--color-neutral-600, #454b55);
     background: #f5f6f8;
     font-size: 12px;
     font-weight: 600;
@@ -842,7 +842,7 @@ td span {
 }
 
 .table-wrap td span {
-    color: #666b73;
+    color: var(--color-neutral-600, #454b55);
     font-size: 12px;
     margin-top: 4px;
     font-weight: 400;

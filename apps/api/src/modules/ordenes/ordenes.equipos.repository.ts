@@ -1,7 +1,8 @@
 import { Prisma } from '@prisma/client';
 import { prisma } from '../../infrastructure/prisma.js';
 import { AppError } from '../../errors/AppError.js';
-import type { RegistrarDiagnosticoInput } from './ordenes.equipos.schema.js';
+import type { EquipoProvisionalInput, RegistrarDiagnosticoInput } from './ordenes.equipos.schema.js';
+import { bloquearEjecucion, type ActorOrden } from './ordenes.actor.js';
 
 const equipoSelect = {
     id: true, codigo: true, tipo: true, marca: true, modelo: true,
@@ -13,6 +14,7 @@ const registroSelect = {
     tipoRegistrado: true, marcaRegistrada: true,
     modeloRegistrado: true, serieRegistrada: true,
     diagnostico: true, observaciones: true, resultado: true,
+    descripcionProvisional: true, motivoMarcaNoVisible: true, motivoModeloNoVisible: true, motivoSerieNoVisible: true,
     creadaEn: true, actualizadaEn: true,
     equipo: { select: equipoSelect },
 } as const;
@@ -25,6 +27,20 @@ export async function listarVinculados(ordenId: number) {
     return prisma.ordenEquipo.findMany({
         where: { ordenId }, orderBy: { id: 'asc' }, select: registroSelect,
     });
+}
+
+export async function registrarProvisional(ordenId: number, datos: EquipoProvisionalInput, actor: ActorOrden) {
+    return prisma.$transaction(async tx => {
+        await bloquearEjecucion(tx, ordenId, actor);
+        const registro = await tx.ordenEquipo.create({ data: {
+            ...datos, ordenId, equipoId: null, identificadaPorId: actor.id, identificadaEn: new Date(),
+        }, select: registroSelect });
+        await tx.auditoria.create({ data: {
+            usuarioId: actor.id, tipoActor: 'USUARIO', entidad: 'ORDEN_EQUIPO', entidadId: String(registro.id),
+            accion: 'IDENTIFICAR_PROVISIONAL', datosNuevos: datos,
+        } });
+        return registro;
+    }, { isolationLevel: Prisma.TransactionIsolationLevel.Serializable });
 }
 
 export async function disponibles(ordenId: number) {

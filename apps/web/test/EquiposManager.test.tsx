@@ -60,6 +60,21 @@ beforeEach(() => {
 })
 
 describe('Gestión de Equipos — TK-03', () => {
+  it('aplica cliente y ubicación al cambiar y reinicia la página al cambiar el estado', async () => {
+    mocks.listarEquipos.mockResolvedValue(pagina([equipo], true))
+    render(<EquiposManager />)
+    await esperarListado()
+    fireEvent.change(screen.getByLabelText('Filtrar por cliente'), { target: { value: '7' } })
+    await waitFor(() => expect(mocks.listarEquipos).toHaveBeenLastCalledWith(expect.objectContaining({ clienteId: '7', ubicacionId: '', pagina: 1 })))
+    await esperarListado()
+    fireEvent.change(screen.getByLabelText('Filtrar por ubicación'), { target: { value: '10' } })
+    await waitFor(() => expect(mocks.listarEquipos).toHaveBeenLastCalledWith(expect.objectContaining({ clienteId: '7', ubicacionId: '10' })))
+    await esperarListado()
+    fireEvent.click(screen.getByRole('button', { name: 'Siguiente' }))
+    await waitFor(() => expect(mocks.listarEquipos).toHaveBeenLastCalledWith(expect.objectContaining({ pagina: 2 })))
+    fireEvent.change(screen.getByLabelText('Filtrar por estado'), { target: { value: 'inactivos' } })
+    await waitFor(() => expect(mocks.listarEquipos).toHaveBeenLastCalledWith(expect.objectContaining({ pagina: 1, estado: 'inactivos' })))
+  })
   it('consulta ubicaciones y carga el inventario inicial', async () => {
     render(<EquiposManager />)
     await esperarListado()

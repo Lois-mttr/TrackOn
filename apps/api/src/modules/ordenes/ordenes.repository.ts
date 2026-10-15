@@ -1,7 +1,11 @@
 import { prisma } from '../../infrastructure/prisma.js';
+import { Prisma } from '@prisma/client';
+import { validarTrabajoCompleto } from './ordenes.revision.js';
+import { autorizarTecnico, type ActorOrden } from './ordenes.actor.js';
+import { registrarEdicionOrden, registrarEventoOrden } from './ordenes.eventos.js';
 import { paginaDesde } from '../../shared/pagination.js';
 import { AppError } from '../../errors/AppError.js';
-import type { CrearOrdenInput, ListarOrdenesInput, EstadoOrdenCodigo } from './ordenes.schema.js';
+import type { CrearOrdenInput, EditarOrdenInput, ListarOrdenesInput, EstadoOrdenCodigo } from './ordenes.schema.js';
 
 const resumenSelect = {
     id: true,
@@ -91,6 +95,12 @@ export async function listar(filtros: ListarOrdenesInput) {
     const items = await prisma.ordenTrabajo.findMany({
         where: {
             ...(filtros.estado ? { estadoCodigo: filtros.estado } : {}),
+            ...(filtros.prioridad ? { prioridad: filtros.prioridad } : {}),
+            ...(filtros.clienteId ? { ubicacion: { clienteId: filtros.clienteId } } : {}),
+            ...((filtros.desde || filtros.hasta) ? { fechaProgramada: {
+                ...(filtros.desde ? { gte: new Date(`${filtros.desde}T00:00:00-06:00`) } : {}),
+                ...(filtros.hasta ? { lt: new Date(new Date(`${filtros.hasta}T00:00:00-06:00`).getTime() + 86400000) } : {}),
+            } } : {}),
             ...(filtros.buscar ? {
                 OR: [
                     { clienteNombreRegistrado: { contains: filtros.buscar, mode: 'insensitive' as const } },
@@ -99,7 +109,7 @@ export async function listar(filtros: ListarOrdenesInput) {
             } : {}),
         },
         select: resumenSelect,
-        orderBy: { creadaEn: 'desc' },
+        orderBy: filtros.desde || filtros.hasta ? [{ fechaProgramada: 'asc' }, { id: 'asc' }] : [{ creadaEn: 'desc' }, { id: 'desc' }],
         skip: (filtros.pagina - 1) * filtros.limite,
         take: filtros.limite + 1,
     });
@@ -116,6 +126,30 @@ export function tieneAsignacionVigente(id: number) {
     });
 }
 
+export async function editar(id: number, datos: EditarOrdenInput, usuarioId: number) {
+    return prisma.$transaction(async tx => {
+        const orden = await tx.ordenTrabajo.findUnique({ where: { id }, select: detalleSelect });
+        if (!orden) throw new AppError(404, 'La orden de trabajo no existe.');
+        const editables = ['BORRADOR', 'PENDIENTE', 'ASIGNADA', 'EN_EJECUCION'];
+        if (!editables.includes(orden.estadoCodigo)) throw new AppError(409, 'Esta orden está en revisión o finalizada y no admite edición.');
+        if (orden.version !== datos.version) throw new AppError(409, 'La orden cambió. Cierra el formulario y actualiza el listado antes de editar.');
+        const anteriores = { solicitud: orden.solicitud, prioridad: orden.prioridad, fechaProgramada: orden.fechaProgramada?.toISOString() ?? null };
+        const nuevos = {
+            solicitud: datos.solicitud ?? anteriores.solicitud,
+            prioridad: datos.prioridad ?? anteriores.prioridad,
+            fechaProgramada: datos.fechaProgramada === undefined ? anteriores.fechaProgramada : datos.fechaProgramada === null ? null : new Date(datos.fechaProgramada).toISOString(),
+        };
+        if (JSON.stringify(anteriores) === JSON.stringify(nuevos)) return orden;
+        const resultado = await tx.ordenTrabajo.updateMany({
+            where: { id, version: datos.version, estadoCodigo: { in: editables } },
+            data: { ...nuevos, fechaProgramada: nuevos.fechaProgramada ? new Date(nuevos.fechaProgramada) : null, version: { increment: 1 } },
+        });
+        if (resultado.count !== 1) throw new AppError(409, 'La orden cambió durante la operación. Vuelve a cargarla.');
+        await registrarEdicionOrden(tx, id, usuarioId, anteriores, nuevos);
+        return tx.ordenTrabajo.findUniqueOrThrow({ where: { id }, select: detalleSelect });
+    }, { isolationLevel: Prisma.TransactionIsolationLevel.Serializable });
+}
+
 export async function cambiarEstado(
     id: number,
     estadoActual: EstadoOrdenCodigo,
@@ -123,8 +157,11 @@ export async function cambiarEstado(
     version: number,
     motivo: string,
     usuarioId: number,
+    actor?: ActorOrden,
 ) {
     return prisma.$transaction(async (tx) => {
+        if (actor) await autorizarTecnico(tx, id, actor);
+        if (nuevoEstado === 'EN_REVISION' || nuevoEstado === 'CERRADA') await validarTrabajoCompleto(tx, id, nuevoEstado === 'CERRADA');
         const resultado = await tx.ordenTrabajo.updateMany({
             where: { id, estadoCodigo: estadoActual, version },
             data: {
@@ -139,6 +176,10 @@ export async function cambiarEstado(
         await tx.historialEstado.create({
             data: { ordenId: id, estadoAnterior: estadoActual, estadoNuevo: nuevoEstado, motivo, cambiadoPorId: usuarioId },
         });
+        await registrarEventoOrden(tx, id, estadoActual, nuevoEstado, usuarioId, motivo);
+        if (nuevoEstado === 'CERRADA' || nuevoEstado === 'CANCELADA') {
+            await tx.asignacion.updateMany({ where: { ordenId: id, fin: null }, data: { fin: new Date() } });
+        }
         return tx.ordenTrabajo.findUniqueOrThrow({ where: { id }, select: detalleSelect });
-    });
+    }, { isolationLevel: Prisma.TransactionIsolationLevel.Serializable });
 }

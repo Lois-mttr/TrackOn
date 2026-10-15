@@ -8,6 +8,8 @@ const mocks = vi.hoisted(() => ({
     vincularEquipoOrden: vi.fn(), guardarDiagnosticoOrden: vi.fn(),
 }));
 vi.mock('../src/features/ordenes/ordenes.equipos.api', () => mocks);
+vi.mock('../src/features/ordenes/TrabajoEquipoPanel', () => ({ default: () => null }));
+vi.mock('../src/features/ordenes/EvidenciasPanel', () => ({ default: () => null }));
 
 const equipo = { id: 11, codigo: 'EQ-011', tipo: 'Aire acondicionado', marca: 'LG', modelo: 'X', numeroSerie: 'A1', ubicacionId: 5 };
 const registro = {

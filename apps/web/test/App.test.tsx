@@ -153,6 +153,7 @@ const gerente: UsuarioSesion = {
 };
 
 beforeEach(() => {
+    window.history.replaceState({}, '', '/');
     vi.resetAllMocks();
 
     mocks.renovarSesion.mockResolvedValue(admin);
@@ -164,6 +165,11 @@ afterEach(() => {
 });
 
 describe("Aplicación TrackOn", () => {
+    it('restaura la sección de órdenes al abrir un enlace directo', async () => {
+        window.history.replaceState({}, '', '/ordenes/12');
+        render(<App />);
+        expect(await screen.findByText('Órdenes - gestión')).toBeTruthy();
+    });
     it("muestra la verificación inicial", () => {
         mocks.renovarSesion.mockReturnValue(
             new Promise(() => {}),

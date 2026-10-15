@@ -1,8 +1,10 @@
 import { useEffect, useState, type SubmitEvent } from "react";
 import { cambiarEstadoServicio, crearServicio, editarServicio, listarServicios } from "./servicios.api";
 import type { EstadoServicio, Servicio, ServicioInput } from "./servicios.types";
+import { useFiltrosListado } from '../../shared/useFiltrosListado';
 
 const vacio = { codigo: "", nombre: "", descripcion: "" };
+const filtrosIniciales = { estado: 'todos' as EstadoServicio, buscar: '' };
 
 interface ServiciosManagerProps {
     puedeGestionar?: boolean;
@@ -12,37 +14,37 @@ export default function ServiciosManager({ puedeGestionar = true }: Readonly<Ser
     const [servicios, setServicios] = useState<Servicio[]>([]);
     const [formulario, setFormulario] = useState(vacio);
     const [editando, setEditando] = useState<number | null>(null);
-    const [estado, setEstado] = useState<EstadoServicio>("todos");
-    const [buscar, setBuscar] = useState("");
-    const [cargando, setCargando] = useState(true);
+    const { filtros, aplicados, pendiente, cambiarFiltros, aplicarFiltros } = useFiltrosListado(filtrosIniciales);
+    const [consultando, setCargando] = useState(true);
+    const cargando = consultando || pendiente;
     const [guardando, setGuardando] = useState(false);
     const [mensaje, setMensaje] = useState<{ tipo: "error" | "exito"; texto: string } | null>(null);
     const [formularioVisible, setFormularioVisible] = useState(false);
 
-    async function cargar(nuevoEstado = estado, nuevaBusqueda = buscar) {
+    function cargar() {
         setCargando(true);
-        try {
-            setServicios((await listarServicios(nuevoEstado, nuevaBusqueda)).items);
-        } catch (error) {
-            setMensaje({
-                tipo: "error",
-                texto: error instanceof Error ? error.message : "No se pudo cargar el catálogo.",
-            });
-        } finally {
-            setCargando(false);
-        }
+        aplicarFiltros(aplicados);
     }
     useEffect(() => {
-        listarServicios("todos", "")
-            .then(pagina => setServicios(pagina.items))
-            .catch(error =>
+        let vigente = true;
+        void listarServicios(aplicados.estado, aplicados.buscar)
+            .then(pagina => { if (vigente) setServicios(pagina.items); })
+            .catch(error => {
+                if (!vigente) return;
+                setServicios([]);
                 setMensaje({
                     tipo: "error",
                     texto: error instanceof Error ? error.message : "No se pudo cargar el catálogo.",
-                }),
-            )
-            .finally(() => setCargando(false));
-    }, []);
+                });
+            })
+            .finally(() => { if (vigente) setCargando(false); });
+        return () => { vigente = false; };
+    }, [aplicados]);
+
+    function filtrar(nuevos: typeof filtrosIniciales, esperar = false) {
+        setMensaje(null); setCargando(true);
+        cambiarFiltros(nuevos, esperar);
+    }
 
     function cancelar() {
         setFormulario(vacio);
@@ -229,19 +231,20 @@ export default function ServiciosManager({ puedeGestionar = true }: Readonly<Ser
                             onSubmit={e => {
                                 e.preventDefault();
                                 setMensaje(null);
-                                void cargar();
+                                setCargando(true); aplicarFiltros();
                             }}
                         >
                             <input
                                 aria-label="Buscar servicio"
                                 placeholder="Buscar por código o nombre"
-                                value={buscar}
-                                onChange={e => setBuscar(e.target.value)}
+                                value={filtros.buscar}
+                                maxLength={150}
+                                onChange={e => filtrar({ ...filtros, buscar: e.target.value }, true)}
                             />
                             <select
                                 aria-label="Filtrar por estado"
-                                value={estado}
-                                onChange={e => setEstado(e.target.value as EstadoServicio)}
+                                value={filtros.estado}
+                                onChange={e => filtrar({ ...filtros, estado: e.target.value as EstadoServicio })}
                             >
                                 <option value="todos">Todos</option>
                                 <option value="activos">Activos</option>
@@ -250,6 +253,7 @@ export default function ServiciosManager({ puedeGestionar = true }: Readonly<Ser
                             <button type="submit" className="secondary-button">
                                 Buscar
                             </button>
+                            <button type="button" className="text-button" onClick={() => filtrar(filtrosIniciales)}>Limpiar</button>
                         </form>
                         {contenidoLista()}
                     </div>

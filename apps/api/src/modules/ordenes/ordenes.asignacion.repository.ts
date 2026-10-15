@@ -1,6 +1,7 @@
-import { prisma } from '../../infrastructure/prisma.js';
-import { AppError } from '../../errors/AppError.js';
-import type { AsignarOrdenInput } from './ordenes.asignacion.schema.js';
+import { prisma } from "../../infrastructure/prisma.js";
+import { AppError } from "../../errors/AppError.js";
+import type { AsignarOrdenInput } from "./ordenes.asignacion.schema.js";
+import { registrarEventoOrden } from './ordenes.eventos.js';
 
 /** Alta atómica: estado, responsable e historial nunca quedan desincronizados. */
 export async function registrarAsignacion(ordenId: number, datos: AsignarOrdenInput, usuarioId: number) {
@@ -9,9 +10,9 @@ export async function registrarAsignacion(ordenId: number, datos: AsignarOrdenIn
             where: { id: ordenId },
             select: { id: true, version: true, estadoCodigo: true },
         });
-        if (!orden) throw new AppError(404, 'La orden no existe.');
-        if (orden.estadoCodigo !== 'PENDIENTE') {
-            throw new AppError(409, 'Solo se puede asignar una orden pendiente.');
+        if (!orden) throw new AppError(404, "La orden no existe.");
+        if (orden.estadoCodigo !== "PENDIENTE") {
+            throw new AppError(409, "Solo se puede asignar una orden pendiente.");
         }
 
         const cuadrilla = await tx.cuadrilla.findFirst({
@@ -25,27 +26,26 @@ export async function registrarAsignacion(ordenId: number, datos: AsignarOrdenIn
                 },
             },
         });
-        if (!cuadrilla) throw new AppError(400, 'La cuadrilla no existe o está inactiva.');
+        if (!cuadrilla) throw new AppError(400, "La cuadrilla no existe o está inactiva.");
         const lider = cuadrilla.miembros[0];
-        if (!lider) throw new AppError(409, 'La cuadrilla necesita un líder técnico activo y habilitado.');
+        if (!lider) throw new AppError(409, "La cuadrilla necesita un líder técnico activo y habilitado.");
 
         const cambio = await tx.ordenTrabajo.updateMany({
-            where: { id: ordenId, estadoCodigo: 'PENDIENTE', version: orden.version },
+            where: { id: ordenId, estadoCodigo: "PENDIENTE", version: orden.version },
             data: {
-                estadoCodigo: 'ASIGNADA',
+                estadoCodigo: "ASIGNADA",
                 version: { increment: 1 },
                 ...(datos.fechaProgramada ? { fechaProgramada: new Date(datos.fechaProgramada) } : {}),
             },
         });
         if (cambio.count !== 1) {
-            throw new AppError(409, 'La orden cambió durante la asignación. Vuelve a cargarla.');
+            throw new AppError(409, "La orden cambió durante la asignación. Vuelve a cargarla.");
         }
 
         await tx.asignacion.create({
             data: {
                 ordenId,
                 cuadrillaId: cuadrilla.id,
-                empleadoResponsableId: lider.empleadoId,
                 asignadaPorId: usuarioId,
                 motivo: datos.motivo,
             },
@@ -53,11 +53,12 @@ export async function registrarAsignacion(ordenId: number, datos: AsignarOrdenIn
         await tx.historialEstado.create({
             data: {
                 ordenId,
-                estadoAnterior: 'PENDIENTE',
-                estadoNuevo: 'ASIGNADA',
+                estadoAnterior: "PENDIENTE",
+                estadoNuevo: "ASIGNADA",
                 cambiadoPorId: usuarioId,
                 motivo: datos.motivo,
             },
         });
+        await registrarEventoOrden(tx, ordenId, 'PENDIENTE', 'ASIGNADA', usuarioId, datos.motivo);
     });
 }

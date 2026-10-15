@@ -2,12 +2,14 @@ import { useEffect, useState, type SyntheticEvent } from 'react';
 import { listarCuadrillas } from '../cuadrillas/cuadrillas.api';
 import type { Cuadrilla } from '../cuadrillas/cuadrillas.types';
 import { asignarOrden } from './ordenes.api';
-import type { OrdenDetalle } from './ordenes.types';
+import type { OrdenDetalle, OrdenResumen } from './ordenes.types';
 
 interface Props {
-    orden: OrdenDetalle;
+    orden: OrdenResumen;
     onCancel: () => void;
     onAssigned: (orden: OrdenDetalle) => void;
+    compacto?: boolean;
+    onBusy?: (valor: boolean) => void;
 }
 
 function liderHabilitado(cuadrilla: Cuadrilla) {
@@ -21,7 +23,7 @@ function nombreLider(cuadrilla: Cuadrilla) {
     return lider ? `${lider.empleado.persona.firstName} ${lider.empleado.persona.firstLastName}` : 'Sin líder habilitado';
 }
 
-export default function AsignarOrdenPanel({ orden, onCancel, onAssigned }: Readonly<Props>) {
+export default function AsignarOrdenPanel({ orden, onCancel, onAssigned, compacto = false, onBusy }: Readonly<Props>) {
     const [cuadrillas, setCuadrillas] = useState<Cuadrilla[]>([]);
     const [cuadrillaId, setCuadrillaId] = useState('');
     const [motivo, setMotivo] = useState('Asignación inicial de la orden.');
@@ -46,6 +48,7 @@ export default function AsignarOrdenPanel({ orden, onCancel, onAssigned }: Reado
         event.preventDefault();
         if (!seleccionada || guardando) return;
         setGuardando(true);
+        onBusy?.(true);
         setError('');
         try {
             const resultado = await asignarOrden(orden.id, {
@@ -58,13 +61,15 @@ export default function AsignarOrdenPanel({ orden, onCancel, onAssigned }: Reado
             setError(fallo instanceof Error ? fallo.message : 'No fue posible asignar la orden.');
         } finally {
             setGuardando(false);
+            onBusy?.(false);
         }
     }
 
     return (
-        <section className="tk-assign-layout" aria-label="Asignar orden de trabajo">
+        <section className={`tk-assign-layout ${compacto ? 'tk-assign-layout--compact' : ''}`} aria-label="Asignar orden de trabajo">
             <form className="card tk-assign-form" onSubmit={event => void guardar(event)}>
-                <div className="card-title"><h4>Asignación operativa</h4></div>
+                {compacto ? <p className="tk-order-context">{orden.clienteNombreRegistrado} · {orden.ubicacionNombreRegistrado}</p>
+                    : <div className="card-title"><h4>Asignación operativa</h4></div>}
                 {error && <p className="notice error" role="alert">{error}</p>}
                 {cargando ? <p role="status">Cargando cuadrillas…</p> : (
                     <div className="tk-assign-fields">
@@ -84,25 +89,25 @@ export default function AsignarOrdenPanel({ orden, onCancel, onAssigned }: Reado
                         </label>
                         <label className="tk-assign-wide">Indicaciones para la cuadrilla *
                             <textarea aria-label="Motivo de asignación" required minLength={3} maxLength={1000}
-                                value={motivo} onChange={event => setMotivo(event.target.value)} rows={4} />
+                                value={motivo} onChange={event => setMotivo(event.target.value)} rows={2} />
                         </label>
                         {disponibles.length === 0 && <p className="form-hint tk-assign-wide">No hay cuadrillas activas con líder técnico habilitado. Configura una en Cuadrillas.</p>}
                     </div>
                 )}
                 <div className="tk-assign-actions">
-                    <button type="button" className="secondary-button" onClick={onCancel}>Cancelar</button>
+                    <button type="button" className="secondary-button" disabled={guardando} onClick={onCancel}>Cancelar</button>
                     <button type="submit" className="primary-button" disabled={guardando || cargando || !seleccionada}>
                         {guardando ? 'Asignando…' : 'Confirmar asignación'}
                     </button>
                 </div>
             </form>
-            <aside className="card tk-summary-panel" aria-label="Resumen de la orden">
+            {!compacto && <aside className="card tk-summary-panel" aria-label="Resumen de la orden">
                 <h4>Resumen de OT-{orden.numero}</h4>
                 <p><strong>Cliente:</strong> {orden.clienteNombreRegistrado}</p>
                 <p><strong>Ubicación:</strong> {orden.ubicacionNombreRegistrado}</p>
                 <p><strong>Prioridad:</strong> {orden.prioridad}</p>
                 <p>La asignación cambiará la orden a estado ASIGNADA y conservará su historial.</p>
-            </aside>
+            </aside>}
         </section>
     );
 }

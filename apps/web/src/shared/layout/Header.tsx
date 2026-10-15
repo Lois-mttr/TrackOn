@@ -36,7 +36,10 @@ export function Header({ usuarioNombre, onLogout, onOpenMenu, acciones }: Readon
                     <small>{rol}</small>
                 </span>
                 <span className="figma-user-avatar" aria-hidden="true">{iniciales(nombre)}</span>
-                <button type="button" className="figma-logout" onClick={onLogout}>Cerrar sesión</button>
+                <button type="button" className="figma-logout" aria-label="Cerrar sesión" title="Cerrar sesión" onClick={onLogout}>
+                    <svg className="tk-logout-icon" aria-hidden="true" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2"><path d="M9 4H4v16h5M14 7l5 5-5 5M9 12h10" /></svg>
+                    <span>Cerrar sesión</span>
+                </button>
             </div>
         </header>
     );

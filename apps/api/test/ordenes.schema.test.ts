@@ -2,11 +2,18 @@ import { describe, expect, it } from 'vitest';
 import {
     cambiarEstadoOrdenSchema,
     crearOrdenSchema,
+    editarOrdenSchema,
     listarOrdenesSchema,
     ordenParamsSchema,
 } from '../src/modules/ordenes/ordenes.schema.js';
 
 describe('Validaciones de órdenes de trabajo', () => {
+    it('exige versión y cambios explícitos para editar sin aplicar valores por defecto', () => {
+        expect(editarOrdenSchema.parse({ version: 2, solicitud: '  Solicitud actualizada  ' })).toEqual({ version: 2, solicitud: 'Solicitud actualizada' });
+        for (const datos of [{ prioridad: 'ALTA' }, { version: 2 }, { version: 0, prioridad: 'ALTA' }, { version: 2, estadoCodigo: 'CERRADA' }, { version: 2, ubicacionId: 9 }]) {
+            expect(editarOrdenSchema.safeParse(datos).success).toBe(false);
+        }
+    });
     it('normaliza solicitud y establece prioridad media', () => {
         expect(crearOrdenSchema.parse({ ubicacionId: 1, solicitud: '  Revisar el equipo  ' })).toEqual({
             ubicacionId: 1, solicitud: 'Revisar el equipo', prioridad: 'MEDIA',

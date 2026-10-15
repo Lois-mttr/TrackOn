@@ -1,6 +1,7 @@
 import { AppError } from '../../errors/AppError.js';
 import * as repository from './ordenes.repository.js';
-import type { CambiarEstadoOrdenInput, CrearOrdenInput, EstadoOrdenCodigo, ListarOrdenesInput } from './ordenes.schema.js';
+import type { ActorOrden } from './ordenes.actor.js';
+import type { CambiarEstadoOrdenInput, CrearOrdenInput, EditarOrdenInput, EstadoOrdenCodigo, ListarOrdenesInput } from './ordenes.schema.js';
 
 const transiciones: Record<EstadoOrdenCodigo, readonly EstadoOrdenCodigo[]> = {
     BORRADOR: ['PENDIENTE', 'CANCELADA'],
@@ -46,6 +47,10 @@ export async function obtener(id: number) {
     return normalizarNumero(orden);
 }
 
+export async function editar(id: number, datos: EditarOrdenInput, usuarioId: number) {
+    return normalizarNumero(await repository.editar(id, datos, usuarioId));
+}
+
 export async function cambiarEstado(id: number, datos: CambiarEstadoOrdenInput, usuarioId: number) {
     const orden = await repository.buscarPorId(id);
     if (!orden) throw new AppError(404, 'La orden de trabajo no existe.');
@@ -60,4 +65,14 @@ export async function cambiarEstado(id: number, datos: CambiarEstadoOrdenInput, 
         id, actual, datos.estado, orden.version, datos.motivo, usuarioId,
     );
     return normalizarNumero(actualizada);
+}
+
+export async function ejecutar(id: number, datos: CambiarEstadoOrdenInput, actor: ActorOrden) {
+    const orden = await repository.buscarPorId(id);
+    if (!orden) throw new AppError(404, 'La orden de trabajo no existe.');
+    const permitida = (orden.estadoCodigo === 'ASIGNADA' && datos.estado === 'EN_EJECUCION') ||
+        (orden.estadoCodigo === 'EN_EJECUCION' && datos.estado === 'EN_REVISION');
+    if (!permitida) throw new AppError(409, 'Solo puedes iniciar una orden asignada o enviar una ejecución a revisión.');
+    return normalizarNumero(await repository.cambiarEstado(id, orden.estadoCodigo as EstadoOrdenCodigo,
+        datos.estado, orden.version, datos.motivo, actor.id, actor));
 }

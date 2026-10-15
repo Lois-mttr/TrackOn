@@ -47,7 +47,7 @@ describe('Presentación de Órdenes según Figma y backend', () => {
     it('muestra las columnas operativas del diseño sin inventar datos de asignación', async () => {
         render(<OrdenesManager />);
         await screen.findByText('OT-140');
-        expect(screen.getByRole('columnheader', { name: 'Cliente / servicio' })).toBeTruthy();
+        expect(screen.getByRole('columnheader', { name: 'Cliente / solicitud' })).toBeTruthy();
         expect(screen.getByRole('columnheader', { name: 'Asignación' })).toBeTruthy();
         expect(screen.getByRole('columnheader', { name: 'Programación' })).toBeTruthy();
         expect(screen.getByText('Sin asignar')).toBeTruthy();
@@ -69,6 +69,7 @@ describe('Presentación de Órdenes según Figma y backend', () => {
         render(<OrdenesManager puedeGestionar={false} />);
         await screen.findByText('OT-140');
         expect(screen.queryByRole('button', { name: '+ Nueva orden' })).toBeNull();
-        expect(screen.getByRole('button', { name: 'Ver detalle' })).toBeTruthy();
+        expect(screen.getByRole('button', { name: 'Ver OT-140' })).toBeTruthy();
+        expect(screen.queryByRole('button', { name: 'Editar OT-140' })).toBeNull();
     });
 });

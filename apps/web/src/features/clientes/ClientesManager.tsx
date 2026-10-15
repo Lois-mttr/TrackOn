@@ -248,6 +248,7 @@ export default function ClientesManager({ puedeGestionar }: Readonly<Props>) {
                             <option value="inactivos">Inactivos</option>
                         </select>
                     </label>
+                    <button type="button" className="text-button" onClick={() => { setBusqueda(''); setFiltroTipo('todos'); setFiltroEstado('todos'); }}>Limpiar</button>
                 </div>
                 <div className="card list-card">
                     {cargando ? <p className="empty">Cargando clientes…</p> : filtrados.length === 0 ?

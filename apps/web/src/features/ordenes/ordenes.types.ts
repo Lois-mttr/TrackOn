@@ -54,9 +54,20 @@ export interface OrdenNueva {
     fechaProgramada?: string | null;
 }
 
+export interface OrdenEdicion {
+    version: number;
+    solicitud?: string;
+    prioridad?: PrioridadOrden;
+    fechaProgramada?: string | null;
+}
+
 export interface FiltrosOrdenes {
     estado: EstadoOrden | '';
     buscar: string;
     pagina: number;
     limite: number;
+    prioridad?: PrioridadOrden | '';
+    clienteId?: string;
+    desde?: string;
+    hasta?: string;
 }

@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { act, cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import OrdenesManager from '../src/features/ordenes/OrdenesManager';
 import type { OrdenDetalle, OrdenResumen } from '../src/features/ordenes/ordenes.types';
 
@@ -9,6 +9,7 @@ const mocks = vi.hoisted(() => ({
     crearOrden: vi.fn(),
     obtenerOrden: vi.fn(),
     cambiarEstadoOrden: vi.fn(),
+    editarOrden: vi.fn(),
 }));
 
 vi.mock('../src/features/equipos/equipos.api', () => ({ listarUbicaciones: mocks.listarUbicaciones }));
@@ -23,6 +24,7 @@ vi.mock('../src/features/ordenes/ordenes.api', () => ({
     crearOrden: mocks.crearOrden,
     obtenerOrden: mocks.obtenerOrden,
     cambiarEstadoOrden: mocks.cambiarEstadoOrden,
+    editarOrden: mocks.editarOrden,
 }));
 
 const orden: OrdenResumen = {
@@ -54,6 +56,7 @@ beforeEach(() => {
     mocks.crearOrden.mockResolvedValue(detalle);
     mocks.obtenerOrden.mockResolvedValue(detalle);
     mocks.cambiarEstadoOrden.mockResolvedValue({ ...detalle, estadoCodigo: 'CANCELADA' });
+    mocks.editarOrden.mockResolvedValue({ ...detalle, version: 2 });
 });
 
 afterEach(cleanup);
@@ -67,6 +70,93 @@ function abrirAlta() {
 }
 
 describe('Gestión web de órdenes de trabajo', () => {
+    it('muestra cuatro acciones con icono y nombre visibles sin un menú desplegable', async () => {
+        render(<OrdenesManager />);
+        await esperarListado();
+        const acciones = within(screen.getByRole('group', { name: 'Acciones de OT-140' }));
+        for (const nombre of ['Ver', 'Editar', 'Asignar', 'Desactivar']) {
+            const boton = acciones.getByRole('button', { name: `${nombre} OT-140` });
+            expect(boton.textContent).toBe(nombre);
+            expect(boton.querySelector('svg[aria-hidden="true"]')).toBeTruthy();
+            expect(boton.getAttribute('title')).toBeTruthy();
+        }
+        expect(acciones.queryByRole('combobox')).toBeNull();
+    });
+    it('edita desde el listado, envía solo los campos cambiados y conserva los filtros', async () => {
+        render(<OrdenesManager />);
+        await esperarListado();
+        fireEvent.change(screen.getByLabelText('Buscar órdenes'), { target: { value: 'motor' } });
+        await waitFor(() => expect(mocks.listarOrdenes).toHaveBeenLastCalledWith(expect.objectContaining({ buscar: 'motor' })));
+        await esperarListado();
+        fireEvent.click(screen.getByRole('button', { name: 'Editar OT-140' }));
+        expect(screen.getByRole('dialog', { name: 'Editar OT-140' })).toBeTruthy();
+        expect(mocks.obtenerOrden).not.toHaveBeenCalled();
+        fireEvent.change(screen.getByLabelText('Solicitud'), { target: { value: 'Mantenimiento actualizado del motor' } });
+        fireEvent.click(screen.getByRole('button', { name: 'Guardar cambios' }));
+        await waitFor(() => expect(mocks.editarOrden).toHaveBeenCalledWith(14, { version: 1, solicitud: 'Mantenimiento actualizado del motor' }));
+        await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull());
+        expect((screen.getByLabelText('Buscar órdenes') as HTMLInputElement).value).toBe('motor');
+        expect(window.location.pathname).not.toMatch(/\/ordenes\/14$/);
+    });
+    it('conserva la edición fallida y bloquea doble envío y cierre durante el guardado', async () => {
+        let rechazar!: (error: Error) => void;
+        mocks.editarOrden.mockReturnValue(new Promise((_, reject) => { rechazar = reject; }));
+        render(<OrdenesManager />);
+        await esperarListado();
+        fireEvent.click(screen.getByRole('button', { name: 'Editar OT-140' }));
+        fireEvent.change(screen.getByLabelText('Solicitud'), { target: { value: 'Solicitud a conservar' } });
+        const form = screen.getByLabelText('Solicitud').closest('form')!;
+        fireEvent.submit(form); fireEvent.submit(form);
+        expect(mocks.editarOrden).toHaveBeenCalledTimes(1);
+        expect((screen.getByRole('button', { name: 'Cerrar ventana' }) as HTMLButtonElement).disabled).toBe(true);
+        await act(async () => { rechazar(new Error('La orden cambió durante la operación')); });
+        expect(screen.getByRole('alert').textContent).toContain('La orden cambió');
+        expect((screen.getByLabelText('Solicitud') as HTMLTextAreaElement).value).toBe('Solicitud a conservar');
+    });
+    it('desactiva desde Acciones únicamente después de indicar un motivo', async () => {
+        render(<OrdenesManager />);
+        await esperarListado();
+        fireEvent.click(screen.getByRole('button', { name: 'Desactivar OT-140' }));
+        expect((screen.getByRole('button', { name: 'Desactivar orden' }) as HTMLButtonElement).disabled).toBe(true);
+        fireEvent.change(screen.getByLabelText('Motivo de desactivación'), { target: { value: 'Cancelación solicitada' } });
+        fireEvent.click(screen.getByRole('button', { name: 'Desactivar orden' }));
+        await waitFor(() => expect(mocks.cambiarEstadoOrden).toHaveBeenCalledWith(14, 'CANCELADA', 'Cancelación solicitada'));
+        await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull());
+        expect(screen.getByRole('alert').textContent).toContain('Orden desactivada');
+    });
+    it('habilita solo Ver en órdenes cerradas y protege las mutaciones', async () => {
+        mocks.listarOrdenes.mockResolvedValue(pagina([{ ...orden, estadoCodigo: 'CERRADA' }]));
+        render(<OrdenesManager />);
+        await esperarListado();
+        for (const nombre of ['Editar', 'Asignar', 'Desactivar']) expect(screen.getByRole('button', { name: `${nombre} OT-140` })).toHaveProperty('disabled', true);
+        fireEvent.click(screen.getByRole('button', { name: 'Editar OT-140' }));
+        expect(screen.queryByRole('dialog')).toBeNull();
+        expect(mocks.editarOrden).not.toHaveBeenCalled();
+    });
+    it('aplica prioridad, cliente y fechas automáticamente y permite restablecerlos', async () => {
+        render(<OrdenesManager />);
+        await esperarListado();
+        fireEvent.change(screen.getByLabelText('Filtrar prioridad'), { target: { value: 'URGENTE' } });
+        fireEvent.change(screen.getByLabelText('Filtrar cliente'), { target: { value: '2' } });
+        fireEvent.change(screen.getByLabelText('Programada desde'), { target: { value: '2026-10-01' } });
+        fireEvent.change(screen.getByLabelText('Programada hasta'), { target: { value: '2026-10-31' } });
+        await waitFor(() => expect(mocks.listarOrdenes).toHaveBeenLastCalledWith(expect.objectContaining({ prioridad: 'URGENTE', clienteId: '2', desde: '2026-10-01', hasta: '2026-10-31', pagina: 1 })));
+        fireEvent.click(screen.getByRole('button', { name: 'Limpiar' }));
+        await waitFor(() => expect(mocks.listarOrdenes).toHaveBeenLastCalledWith({ estado: '', buscar: '', pagina: 1, limite: 25 }));
+        expect((screen.getByLabelText('Programada desde') as HTMLInputElement).value).toBe('');
+    });
+    it('ignora respuestas anteriores al último filtro de órdenes', async () => {
+        render(<OrdenesManager />);
+        await esperarListado();
+        let resolver!: (valor: ReturnType<typeof pagina>) => void;
+        mocks.listarOrdenes.mockReturnValueOnce(new Promise(resolve => { resolver = resolve; })).mockResolvedValueOnce(pagina([]));
+        fireEvent.click(screen.getByRole('button', { name: 'Asignadas' }));
+        fireEvent.click(screen.getByRole('button', { name: 'Cerradas' }));
+        await screen.findByText('No hay órdenes para estos filtros.');
+        await act(async () => { resolver(pagina()); });
+        expect(screen.queryByText('OT-140')).toBeNull();
+        expect(screen.getByRole('button', { name: 'Cerradas' }).getAttribute('aria-pressed')).toBe('true');
+    });
     it('lista órdenes al iniciar', async () => {
         render(<OrdenesManager />);
         await esperarListado();
@@ -130,17 +220,18 @@ describe('Gestión web de órdenes de trabajo', () => {
         fireEvent.change(screen.getByRole('combobox', { name: 'Ubicación' }), { target: { value: '3' } });
         fireEvent.change(screen.getByRole('textbox', { name: 'Solicitud' }), { target: { value: 'Revisar el compresor' } });
         fireEvent.click(screen.getByRole('button', { name: 'Registrar orden' }));
-        expect(await screen.findByRole('alert')).toHaveProperty('textContent', 'Ubicación inactiva');
-        expect(screen.getByRole('textbox', { name: 'Solicitud' })).toBeTruthy();
+        const ventana = within(screen.getByRole('dialog', { name: 'Nueva orden de trabajo' }));
+        expect(await ventana.findByRole('alert')).toHaveProperty('textContent', 'Ubicación inactiva');
+        expect(ventana.getByRole('textbox', { name: 'Solicitud' })).toHaveProperty('value', 'Revisar el compresor');
     });
 
     it('abre detalle con historial de movimientos', async () => {
         render(<OrdenesManager />);
         await esperarListado();
-        fireEvent.click(screen.getByRole('button', { name: 'Ver detalle' }));
+        fireEvent.click(screen.getByRole('button', { name: 'Ver OT-140' }));
         expect(await screen.findByText('Historial de estados')).toBeTruthy();
         expect(screen.getByText(/Registro inicial de la orden/)).toBeTruthy();
-        fireEvent.click(screen.getByRole('button', { name: 'Cerrar detalle' }));
+        fireEvent.click(screen.getByRole('button', { name: 'Cerrar ventana' }));
         expect(screen.queryByText('Historial de estados')).toBeNull();
     });
 
@@ -148,31 +239,34 @@ describe('Gestión web de órdenes de trabajo', () => {
         mocks.obtenerOrden.mockRejectedValue(new Error('No existe'));
         render(<OrdenesManager />);
         await esperarListado();
-        fireEvent.click(screen.getByRole('button', { name: 'Ver detalle' }));
+        fireEvent.click(screen.getByRole('button', { name: 'Ver OT-140' }));
         expect(await screen.findByRole('alert')).toHaveProperty('textContent', 'No existe');
     });
 
     it('cambia el estado de una orden cuando está permitido', async () => {
+        mocks.obtenerOrden.mockResolvedValue({ ...detalle, estadoCodigo: 'ASIGNADA' });
+        mocks.cambiarEstadoOrden.mockResolvedValue({ ...detalle, estadoCodigo: 'EN_EJECUCION' });
         render(<OrdenesManager />);
         await esperarListado();
-        fireEvent.click(screen.getByRole('button', { name: 'Ver detalle' }));
+        fireEvent.click(screen.getByRole('button', { name: 'Ver OT-140' }));
         await screen.findByText('Historial de estados');
-        fireEvent.change(screen.getByRole('combobox', { name: 'Nuevo estado' }), { target: { value: 'CANCELADA' } });
-        fireEvent.change(screen.getByRole('textbox', { name: 'Motivo del cambio' }), { target: { value: 'Cancelación solicitada' } });
-        fireEvent.click(screen.getByRole('button', { name: 'Cambiar estado' }));
-        await waitFor(() => expect(mocks.cambiarEstadoOrden).toHaveBeenCalledWith(14, 'CANCELADA', 'Cancelación solicitada'));
+        expect(screen.queryByRole('combobox', { name: 'Nuevo estado' })).toBeNull();
+        fireEvent.change(screen.getByRole('textbox', { name: 'Motivo del cambio' }), { target: { value: 'Comienzo del trabajo' } });
+        fireEvent.click(screen.getByRole('button', { name: 'Iniciar trabajo' }));
+        await waitFor(() => expect(mocks.cambiarEstadoOrden).toHaveBeenCalledWith(14, 'EN_EJECUCION', 'Comienzo del trabajo'));
         expect(await screen.findByRole('alert')).toHaveProperty('textContent', 'Estado actualizado correctamente.');
     });
 
     it('muestra errores de cambio de estado', async () => {
+        mocks.obtenerOrden.mockResolvedValue({ ...detalle, estadoCodigo: 'ASIGNADA' });
         mocks.cambiarEstadoOrden.mockRejectedValue(new Error('Cambio no permitido'));
         render(<OrdenesManager />);
         await esperarListado();
-        fireEvent.click(screen.getByRole('button', { name: 'Ver detalle' }));
+        fireEvent.click(screen.getByRole('button', { name: 'Ver OT-140' }));
         await screen.findByText('Historial de estados');
-        fireEvent.change(screen.getByRole('combobox', { name: 'Nuevo estado' }), { target: { value: 'CANCELADA' } });
-        fireEvent.change(screen.getByRole('textbox', { name: 'Motivo del cambio' }), { target: { value: 'Cancelación solicitada' } });
-        fireEvent.click(screen.getByRole('button', { name: 'Cambiar estado' }));
+        expect(screen.queryByRole('combobox', { name: 'Nuevo estado' })).toBeNull();
+        fireEvent.change(screen.getByRole('textbox', { name: 'Motivo del cambio' }), { target: { value: 'Comienzo del trabajo' } });
+        fireEvent.click(screen.getByRole('button', { name: 'Iniciar trabajo' }));
         expect(await screen.findByRole('alert')).toHaveProperty('textContent', 'Cambio no permitido');
     });
 
@@ -180,9 +274,24 @@ describe('Gestión web de órdenes de trabajo', () => {
         render(<OrdenesManager puedeGestionar={false} />);
         await esperarListado();
         expect(screen.queryByRole('button', { name: '+ Nueva orden' })).toBeNull();
-        fireEvent.click(screen.getByRole('button', { name: 'Ver detalle' }));
+        fireEvent.click(screen.getByRole('button', { name: 'Ver OT-140' }));
         await screen.findByText('Historial de estados');
-        expect(screen.queryByRole('button', { name: 'Cambiar estado' })).toBeNull();
+        expect(screen.queryByRole('button', { name: 'Iniciar trabajo' })).toBeNull();
+    });
+
+    it.each([
+        ['Devolver a ejecución', 'EN_EJECUCION'],
+        ['Cerrar orden', 'CERRADA'],
+    ] as const)('permite %s desde revisión con una acción explícita y un motivo', async (accion, estado) => {
+        mocks.obtenerOrden.mockResolvedValue({ ...detalle, estadoCodigo: 'EN_REVISION' });
+        mocks.cambiarEstadoOrden.mockResolvedValue({ ...detalle, estadoCodigo: estado });
+        render(<OrdenesManager />);
+        await esperarListado();
+        fireEvent.click(screen.getByRole('button', { name: 'Ver OT-140' }));
+        await screen.findByRole('button', { name: accion });
+        fireEvent.change(screen.getByLabelText('Motivo del cambio'), { target: { value: 'Revisión realizada por gerencia' } });
+        fireEvent.click(screen.getByRole('button', { name: accion }));
+        await waitFor(() => expect(mocks.cambiarEstadoOrden).toHaveBeenCalledWith(14, estado, 'Revisión realizada por gerencia'));
     });
 
     it('permite avanzar y retroceder páginas', async () => {

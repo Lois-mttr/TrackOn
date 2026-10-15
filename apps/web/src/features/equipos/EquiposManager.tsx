@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState, type SyntheticEvent } from "react";
 import { cambiarEstadoEquipo, crearEquipo, editarEquipo, listarEquipos, listarUbicaciones } from "./equipos.api";
 import type { Equipo, EquipoFiltros, EquipoInput, Ubicacion } from "./equipos.types";
+import { useFiltrosListado } from '../../shared/useFiltrosListado';
 
 const LIMITE = 25;
 const filtrosIniciales: EquipoFiltros = {
@@ -52,15 +53,15 @@ interface EquiposManagerProps {
 export default function EquiposManager({ puedeGestionar = true }: Readonly<EquiposManagerProps>) {
     const [equipos, setEquipos] = useState<Equipo[]>([]);
     const [ubicaciones, setUbicaciones] = useState<Ubicacion[]>([]);
-    const [filtros, setFiltros] = useState<EquipoFiltros>(filtrosIniciales);
-    const [filtrosAplicados, setFiltrosAplicados] = useState<EquipoFiltros>(filtrosIniciales);
+    const { filtros, aplicados: filtrosAplicados, pendiente, cambiarFiltros, aplicarFiltros } = useFiltrosListado(filtrosIniciales);
     const [pagina, setPagina] = useState(1);
     const [hayMas, setHayMas] = useState(false);
     const [recarga, setRecarga] = useState(0);
     const [formulario, setFormulario] = useState<Formulario>(formularioVacio);
     const [equipoEnEdicion, setEquipoEnEdicion] = useState<Equipo | null>(null);
     const [formularioVisible, setFormularioVisible] = useState(false);
-    const [cargando, setCargando] = useState(true);
+    const [consultando, setCargando] = useState(true);
+    const cargando = consultando || pendiente;
     const [guardando, setGuardando] = useState(false);
     const [cambiandoEstadoId, setCambiandoEstadoId] = useState<number | null>(null);
     const [mensaje, setMensaje] = useState<Mensaje | null>(null);
@@ -120,11 +121,14 @@ export default function EquiposManager({ puedeGestionar = true }: Readonly<Equip
                 setHayMas(resultado.hayMas);
             })
             .catch((error: unknown) => {
-                if (vigente)
+                if (vigente) {
+                    setEquipos([]);
+                    setHayMas(false);
                     setMensaje({
                         tipo: "error",
                         texto: textoError(error, "No se pudo cargar el inventario."),
                     });
+                }
             })
             .finally(() => {
                 if (vigente) setCargando(false);
@@ -171,17 +175,21 @@ export default function EquiposManager({ puedeGestionar = true }: Readonly<Equip
         setMensaje(null);
         setCargando(true);
         setPagina(1);
-        setFiltrosAplicados({ ...filtros });
-        setRecarga(n => n + 1);
+        aplicarFiltros();
     }
 
     function limpiarFiltros() {
         setMensaje(null);
-        setFiltros({ ...filtrosIniciales });
-        setFiltrosAplicados({ ...filtrosIniciales });
+        aplicarFiltros(filtrosIniciales);
         setPagina(1);
         setCargando(true);
-        setRecarga(n => n + 1);
+    }
+
+    function filtrar(nuevos: EquipoFiltros, esperar = false) {
+        setMensaje(null);
+        setCargando(true);
+        setPagina(1);
+        cambiarFiltros(nuevos, esperar);
     }
 
     function actualizarListado() {
@@ -393,11 +401,11 @@ export default function EquiposManager({ puedeGestionar = true }: Readonly<Equip
                                 aria-label="Filtrar por cliente"
                                 value={filtros.clienteId}
                                 onChange={event =>
-                                    setFiltros(actual => ({
-                                        ...actual,
+                                    filtrar({
+                                        ...filtros,
                                         clienteId: event.target.value,
                                         ubicacionId: "",
-                                    }))
+                                    })
                                 }
                             >
                                 <option value="">Todos los clientes</option>
@@ -411,7 +419,7 @@ export default function EquiposManager({ puedeGestionar = true }: Readonly<Equip
                                 aria-label="Filtrar por ubicación"
                                 value={filtros.ubicacionId}
                                 onChange={event =>
-                                    setFiltros(actual => ({ ...actual, ubicacionId: event.target.value }))
+                                    filtrar({ ...filtros, ubicacionId: event.target.value })
                                 }
                             >
                                 <option value="">Todas las ubicaciones</option>
@@ -425,24 +433,24 @@ export default function EquiposManager({ puedeGestionar = true }: Readonly<Equip
                                 aria-label="Buscar por código"
                                 placeholder="Código"
                                 value={filtros.codigo}
-                                onChange={event => setFiltros(actual => ({ ...actual, codigo: event.target.value }))}
+                                onChange={event => filtrar({ ...filtros, codigo: event.target.value }, true)}
                             />
                             <input
                                 aria-label="Buscar por serie"
                                 placeholder="N.º de serie"
                                 value={filtros.numeroSerie}
                                 onChange={event =>
-                                    setFiltros(actual => ({ ...actual, numeroSerie: event.target.value }))
+                                    filtrar({ ...filtros, numeroSerie: event.target.value }, true)
                                 }
                             />
                             <select
                                 aria-label="Filtrar por estado"
                                 value={filtros.estado}
                                 onChange={event =>
-                                    setFiltros(actual => ({
-                                        ...actual,
+                                    filtrar({
+                                        ...filtros,
                                         estado: event.target.value as EquipoFiltros["estado"],
-                                    }))
+                                    })
                                 }
                             >
                                 <option value="activos">Activos</option>

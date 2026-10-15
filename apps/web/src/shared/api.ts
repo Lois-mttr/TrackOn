@@ -173,6 +173,7 @@ async function recuperarRespuesta401(
 export async function api<T>(
     url: string,
     init?: RequestInit,
+    formato: 'json' | 'blob' = 'json',
 ): Promise<T> {
     const esAuth = url.startsWith("/api/auth/");
     const generacionInicial = generacionSesion;
@@ -215,6 +216,11 @@ export async function api<T>(
         throw new ApiError(message, response.status);
     }
 
+    if (formato === 'blob') {
+        const contenido = await response.blob();
+        verificarGeneracion(generacionInicial, esAuth);
+        return contenido as T;
+    }
     const body = (await response.json()) as { data: T };
 
     verificarGeneracion(generacionInicial, esAuth);

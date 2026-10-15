@@ -6,7 +6,9 @@ import {
     diagnosticoParamsSchema,
     ordenEquipoParamsSchema,
     registrarDiagnosticoSchema,
+    equipoProvisionalSchema,
 } from './ordenes.equipos.schema.js';
+import { registrarProvisional } from './ordenes.equipos.repository.js';
 
 function obtenerActor(req: Request) {
     if (!req.auth) throw new AppError(401, 'Se requiere autenticación.');
@@ -48,5 +50,12 @@ export async function diagnosticar(req: Request, res: Response, next: NextFuncti
         const { id, registroId } = diagnosticoParamsSchema.parse(req.params);
         const datos = registrarDiagnosticoSchema.parse(req.body);
         res.json({ data: await service.registrarDiagnostico(id, registroId, datos, actor) });
+    } catch (error) { next(error); }
+}
+
+export async function provisional(req: Request, res: Response, next: NextFunction) {
+    try {
+        const { id } = ordenEquipoParamsSchema.parse(req.params);
+        res.status(201).json({ data: await registrarProvisional(id, equipoProvisionalSchema.parse(req.body), obtenerActor(req)) });
     } catch (error) { next(error); }
 }

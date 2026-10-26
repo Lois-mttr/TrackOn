@@ -17,6 +17,8 @@ import { cuadrillasRouter } from './modules/cuadrillas/cuadrillas.routes.js';
 import { notificacionesRouter } from './modules/notificaciones/notificaciones.routes.js';
 import { requestObservability } from './middlewares/request-observability.js';
 import { ubicacionesRouter } from "./modules/ubicaciones/ubicaciones.routes.js";
+import { realtimeSignals } from './middlewares/realtime-signals.js';
+import { googleCalendarRouter } from './modules/google-calendar/google-calendar.routes.js';
 
 
 import { ordenesRouter } from "./modules/ordenes/ordenes.routes.js";
@@ -27,6 +29,7 @@ app.disable("x-powered-by");
 
 app.use(express.json({ limit: '1mb'}))
 app.use(requestObservability);
+app.use(realtimeSignals);
 
 app.get("/api/health", (_req, res) => {
     res.json({
@@ -68,6 +71,7 @@ app.use('/api/dashboard', dashboardRouter);
 app.use('/api/auditoria', auditoriaRouter);
 app.use('/api/cuadrillas', cuadrillasRouter);
 app.use('/api/notificaciones', notificacionesRouter);
+app.use('/api/integraciones/google-calendar', googleCalendarRouter);
 app.use("/api/ubicaciones", ubicacionesRouter);
 
 app.use("/api/ordenes", ordenesRouter);

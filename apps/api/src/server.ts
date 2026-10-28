@@ -2,6 +2,8 @@ import { app } from './app.js';
 import { prisma } from './infrastructure/prisma.js';
 import { createServer } from 'node:http';
 import { attachRealtimeServer } from './infrastructure/realtime.js';
+import { closeCache } from './infrastructure/cache.js';
+import { closeCpuWorkers } from './infrastructure/cpu-worker-pool.js';
 
 const port = Number(process.env.PORT ?? 3000);
 const host = process.env.HOST ?? '0.0.0.0';
@@ -21,7 +23,7 @@ function cerrarServidor(signal: NodeJS.Signals) {
     for (const client of realtimeServer.clients) client.terminate();
     realtimeServer.close();
     server.close(() => {
-        void prisma.$disconnect().finally(() => {
+        void Promise.allSettled([prisma.$disconnect(), closeCache(), closeCpuWorkers()]).finally(() => {
             process.exitCode = 0;
         });
     });

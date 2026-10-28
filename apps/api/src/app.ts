@@ -19,6 +19,7 @@ import { requestObservability } from './middlewares/request-observability.js';
 import { ubicacionesRouter } from "./modules/ubicaciones/ubicaciones.routes.js";
 import { realtimeSignals } from './middlewares/realtime-signals.js';
 import { googleCalendarRouter } from './modules/google-calendar/google-calendar.routes.js';
+import { cacheStatus } from './infrastructure/cache.js';
 
 
 import { ordenesRouter } from "./modules/ordenes/ordenes.routes.js";
@@ -41,10 +42,12 @@ app.get("/api/health", (_req, res) => {
 app.get("/api/ready", async (_req, res) => {
     try {
         await prisma.$queryRaw`SELECT 1`;
+        const cache = await cacheStatus();
 
         res.status(200).json({
             status: "ok",
-            database: "connected"
+            database: "connected",
+            cache,
         });
     } catch (error: unknown) {
         console.error(

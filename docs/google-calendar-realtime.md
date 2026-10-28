@@ -41,8 +41,8 @@ segundos; mantiene la recarga por foco como recuperación ante desconexiones.
 La sincronización con Google se ejecuta en una cola asíncrona con concurrencia
 limitada y reporta el resultado por WebSocket. Las escrituras de auditoría y
 notificaciones permanecen dentro de sus transacciones: moverlas a worker threads
-rompería la atomicidad y no aceleraría operaciones de base de datos. Los hashes
-de contraseñas y archivos ya usan APIs asíncronas de Node.
+rompería la atomicidad y no aceleraría operaciones de base de datos. El hash de
+evidencias usa el pool de worker threads y las contraseñas usan `scrypt` asíncrono.
 
 La cola actual vive en el proceso de la API y es apropiada para desarrollo o una
 sola instancia. Antes de desplegar varias réplicas, se debe sustituir por una cola

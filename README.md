@@ -21,3 +21,4 @@ Preparación inicial del entorno de desarrollo.
 - [Docker Compose y despliegue local](docs/docker.md)
 - [SonarQube Quality Gate](docs/sonarqube-quality-gate.md)
 - [Google Calendar, trabajos en segundo plano y tiempo real](docs/google-calendar-realtime.md)
+- [Rendimiento con Redis y worker threads](docs/rendimiento-redis-workers.md)

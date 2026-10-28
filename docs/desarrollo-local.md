@@ -1,6 +1,6 @@
 # Desarrollo local con recarga automática
 
-Este flujo ejecuta solamente PostgreSQL en Docker. La API usa `tsx watch` y la
+Este flujo ejecuta PostgreSQL y Redis en Docker. La API usa `tsx watch` y la
 interfaz usa Vite, por lo que los cambios en `apps/api/src` y `apps/web/src` se
 reflejan automáticamente.
 
@@ -23,7 +23,7 @@ contenedorizadas. Luego inicia la base con el override de desarrollo:
 
 ```bash
 docker compose stop web api
-docker compose -f compose.yaml -f compose.dev.yaml up -d db
+docker compose -f compose.yaml -f compose.dev.yaml up -d db redis
 ```
 
 En otra terminal, inicia la API:
@@ -33,6 +33,7 @@ set -a
 source .env
 set +a
 export DATABASE_URL="postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@127.0.0.1:${POSTGRES_PORT:-5433}/${POSTGRES_DB}?schema=public"
+export REDIS_URL="redis://127.0.0.1:${REDIS_PORT:-6380}"
 pnpm --filter @trackon/api dev
 ```
 

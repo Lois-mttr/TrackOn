@@ -58,6 +58,8 @@
 .tk-modal .form-card :is(input,select,textarea), .tk-modal .tk-assign-fields :is(input,select,textarea) { font-size:14px; }
 .tk-modal .form-card label, .tk-modal .tk-order-form-layout .form-card label, .tk-modal .tk-assign-fields label { font-size:14px; }
 .tk-modal .tk-form-actions { justify-content:flex-end; }
+.tk-confirm-dialog { width:min(480px,calc(100vw - 32px)); }
+.tk-confirm-dialog .tk-modal-body { padding-top:12px; }
 .tk-order-form { display:grid; gap:16px; }
 .tk-order-context { color:var(--tk-muted); }
 .tk-order-state { display:flex; flex-wrap:wrap; align-items:center; gap:10px; margin-bottom:20px; }

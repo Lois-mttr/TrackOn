@@ -6,6 +6,21 @@ reflejan automáticamente.
 
 ## Preparación inicial
 
+Usa Node.js `24.22.1` (incluye los [parches de seguridad del 21 de octubre de
+2026](https://nodejs.org/en/blog/release/v24.22.1)) y pnpm `10.34.5`, fijados en
+`mise.toml`. Si usas mise, ejecuta `mise install` y activa mise en tu terminal.
+Si usas nvm:
+
+```bash
+nvm install 24.22.1
+nvm use 24.22.1
+corepack enable pnpm
+```
+
+Si aparece `pnpm: orden no encontrada` con Node ya instalado, ejecuta
+`corepack enable pnpm`. Corepack usa la versión de pnpm de `package.json`.
+Comprueba `node --version` y `pnpm --version` antes de instalar dependencias.
+
 Desde la raíz del repositorio:
 
 ```bash

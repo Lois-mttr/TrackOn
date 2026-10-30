@@ -25,15 +25,17 @@ export function DataTable({ children, className = '', label }: Readonly<{ childr
   return <div className="table-wrap shared-table-wrap"><table className={`shared-table ${className}`} aria-label={label}>{children}</table></div>
 }
 
-export function TablePagination({ pagina, hayMas, cargando = false, limite = 25, onPagina, onLimite }: Readonly<{
+export function TablePagination({ pagina, hayMas, cargando = false, limite = 25, cantidad, etiqueta = 'registros', onPagina, onLimite }: Readonly<{
   pagina: number; hayMas: boolean; cargando?: boolean; limite?: number;
+  cantidad?: number; etiqueta?: string;
   onPagina: (pagina: number) => void; onLimite?: (limite: number) => void;
 }>) {
-  return <div className="pagination shared-pagination">
-    {onLimite && <label>Filas por página<select aria-label="Filas por página" value={limite} disabled={cargando} onChange={event => onLimite(Number(event.target.value))}>
+  return <nav className="shared-pagination" aria-label={`Paginación de ${etiqueta}`}>
+    <div className="shared-pagination__summary" aria-live="polite"><strong>Página {pagina}</strong>{cantidad !== undefined && <span>{cantidad} {etiqueta} en esta página</span>}</div>
+    {onLimite && <label className="shared-pagination__size">Mostrar<select aria-label="Filas por página" value={limite} disabled={cargando} onChange={event => onLimite(Number(event.target.value))}>
       {[10, 25, 50, 100].map(valor => <option key={valor} value={valor}>{valor}</option>)}
-    </select></label>}
-    <div className="shared-pagination__actions"><Button disabled={cargando || pagina === 1} onClick={() => onPagina(pagina - 1)}>Anterior</Button>
-      <span>Página {pagina}</span><Button disabled={cargando || !hayMas} onClick={() => onPagina(pagina + 1)}>Siguiente</Button></div>
-  </div>
+    </select><span>por página</span></label>}
+    <div className="shared-pagination__actions"><Button aria-label="Anterior" disabled={cargando || pagina === 1} onClick={() => onPagina(pagina - 1)}>← Anterior</Button>
+      <Button aria-label="Siguiente" disabled={cargando || !hayMas} onClick={() => onPagina(pagina + 1)}>Siguiente →</Button></div>
+  </nav>
 }

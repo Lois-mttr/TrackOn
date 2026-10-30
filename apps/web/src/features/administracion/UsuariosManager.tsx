@@ -21,8 +21,8 @@ export default function UsuariosManager() {
     const [guardando, setGuardando] = useState(false);
     useEffect(() => {
         let vigente = true;
-        void Promise.all([listarUsuarios(), listarRolesAcceso(), listarEmpleados()])
-            .then(([usuarios, roles, empleados]) => { if (vigente) { setUsuarios(usuarios); setRoles(roles); setEmpleados(empleados); setError(null); } })
+        void Promise.all([listarUsuarios(), listarRolesAcceso(), listarEmpleados({ estado: 'activos', limite: 100 })])
+            .then(([usuarios, roles, empleados]) => { if (vigente) { setUsuarios(usuarios); setRoles(roles); setEmpleados(empleados.items); setError(null); } })
             .catch(error => { if (vigente) setError(error instanceof Error ? error.message : 'No se pudieron cargar los accesos.'); })
             .finally(() => { if (vigente) setCargando(false); });
         return () => { vigente = false; };

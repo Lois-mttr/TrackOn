@@ -259,6 +259,8 @@ export default function ClientesManager({ puedeGestionar }: Readonly<Props>) {
                     <button type="button" className="text-button" onClick={() => { setBusqueda(''); setFiltroTipo('todos'); setFiltroEstado('todos'); setPaginaClientes(1); }}>Limpiar</button>
                 </div>
                 <div className="card list-card">
+                    <TablePagination pagina={paginaClientes} limite={limiteClientes} hayMas={hayMasClientes} cargando={cargando} cantidad={filtrados.length} etiqueta="clientes"
+                        onPagina={setPaginaClientes} onLimite={valor => { setLimiteClientes(valor); setPaginaClientes(1); }} />
                     {cargando ? <p className="empty">Cargando clientes…</p> : filtrados.length === 0 ?
                         <p className="empty">No hay clientes que coincidan con los filtros.</p> :
                         <DataTable className="tk-clientes-tabla" label="Clientes">
@@ -274,8 +276,6 @@ export default function ClientesManager({ puedeGestionar }: Readonly<Props>) {
                                     onClick={() => abrirCliente(cliente.id)}>Ver detalle</button></td>
                             </tr>)}</tbody>
                         </DataTable>}
-                    <TablePagination pagina={paginaClientes} limite={limiteClientes} hayMas={hayMasClientes} cargando={cargando}
-                        onPagina={setPaginaClientes} onLimite={valor => { setLimiteClientes(valor); setPaginaClientes(1); }} />
                 </div>
             </>}
 
@@ -375,6 +375,8 @@ export default function ClientesManager({ puedeGestionar }: Readonly<Props>) {
                             {guardando ? "Guardando…" : "Guardar ubicación"}</button>
                     </form>}
                     {errorUbicaciones && <p role="alert" className="notice error">{errorUbicaciones}</p>}
+                    <TablePagination pagina={pagina} hayMas={hayMas} cargando={cargandoUbicaciones} cantidad={ubicaciones.length} etiqueta="ubicaciones"
+                        onPagina={valor => { setCargandoUbicaciones(true); setPagina(valor); }} />
                     {cargandoUbicaciones ? <p className="empty">Cargando ubicaciones…</p> : ubicaciones.length === 0 ?
                         <p className="empty">Este cliente todavía no tiene ubicaciones registradas.</p> :
                         <div className="tk-clientes-ubicaciones-list">
@@ -388,13 +390,6 @@ export default function ClientesManager({ puedeGestionar }: Readonly<Props>) {
                                         {ubicacion.activa ? "Desactivar" : "Activar"}</button>}</div>
                             </article>)}
                         </div>}
-                    <div className="tk-clientes-pagination">
-                        <button className="secondary-button" type="button" disabled={pagina <= 1 || cargandoUbicaciones}
-                            onClick={() => { setCargandoUbicaciones(true); setPagina(p => Math.max(1, p - 1)); }}>Anterior</button>
-                        <span>Página {pagina}</span>
-                        <button className="secondary-button" type="button" disabled={!hayMas || cargandoUbicaciones}
-                            onClick={() => { setCargandoUbicaciones(true); setPagina(p => p + 1); }}>Siguiente</button>
-                    </div>
                 </div>
             </>}
         </section>

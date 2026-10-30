@@ -76,6 +76,8 @@ export default function MaterialesManager({ puedeGestionar }: Readonly<{ puedeGe
                     <option value="activos">Activos</option><option value="inactivos">Inactivos</option><option value="todos">Todos</option>
                 </select><Button type="submit">Buscar</Button><Button type="button" onClick={() => filtrar(filtrosIniciales)}>Limpiar</Button>
             </form>
+            <TablePagination pagina={aplicados.pagina} hayMas={datos.hayMas} cargando={cargando} cantidad={datos.items.length} etiqueta="materiales"
+                onPagina={pagina => { setCargando(true); aplicarFiltros({ ...aplicados, pagina }); }} />
             {cargando ? <StatePanel type="loading" title="Cargando materiales…" /> : datos.items.length === 0 ? <StatePanel type="empty" title="No hay materiales para estos filtros" /> :
                 <DataTable label="Materiales"><thead><tr><th>Material</th><th>Unidad de medida</th><th>Estado</th><th>Acciones</th></tr></thead><tbody>
                     {datos.items.map(material => <tr key={material.id}>
@@ -85,8 +87,6 @@ export default function MaterialesManager({ puedeGestionar }: Readonly<{ puedeGe
                             <Button onClick={() => setConfirmacion(material)}>{material.activo ? 'Desactivar' : 'Activar'}</Button>
                         </>}</td></tr>)}
                 </tbody></DataTable>}
-            <TablePagination pagina={aplicados.pagina} hayMas={datos.hayMas} cargando={cargando}
-                onPagina={pagina => { setCargando(true); aplicarFiltros({ ...aplicados, pagina }); }} />
         </div>}
         {confirmacion && <div className="card form-card" role="dialog" aria-modal="false" aria-labelledby="material-confirmar">
             <h3 id="material-confirmar">{confirmacion.activo ? 'Desactivar' : 'Activar'} {confirmacion.nombre}</h3>

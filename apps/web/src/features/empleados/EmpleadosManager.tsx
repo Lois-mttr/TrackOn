@@ -26,8 +26,10 @@ export default function EmpleadosManager() {
 
     useEffect(() => {
         let activo = true;
-        setCargando(true);
-        void listarEmpleados(aplicados).then(resultado => { if (activo) setDatos(resultado); })
+        void Promise.resolve().then(() => {
+            if (activo) setCargando(true);
+            return listarEmpleados(aplicados);
+        }).then(resultado => { if (activo) setDatos(resultado); })
             .catch(error => { if (activo) setAviso({ tipo: 'error', texto: errorTexto(error) }); })
             .finally(() => { if (activo) setCargando(false); });
         return () => { activo = false; };
@@ -35,6 +37,11 @@ export default function EmpleadosManager() {
 
     async function actualizarListado() {
         setDatos(await listarEmpleados(aplicados));
+    }
+
+    function actualizarFiltros(nuevos: FiltrosEmpleados, esperar = false) {
+        setCargando(true);
+        cambiarFiltros(nuevos, esperar);
     }
 
     async function abrirDetalle(id: number) {
@@ -99,9 +106,9 @@ export default function EmpleadosManager() {
         {aviso && <div role="alert" className={`tk-employee-notice ${aviso.tipo}`}>{aviso.texto}</div>}
         {cargando && !datos ? <div className="tk-employee-panel tk-employee-loading" role="status">Cargando información de empleados…</div> : <>
             {vista === 'listado' && datos && <EmpleadosListado datos={datos} filtros={filtros} cargando={cargando || pendiente}
-                onFiltros={cambiarFiltros}
-                onPagina={pagina => cambiarFiltros({ ...aplicados, pagina })}
-                onLimite={limite => cambiarFiltros({ ...aplicados, pagina: 1, limite })}
+                onFiltros={actualizarFiltros}
+                onPagina={pagina => actualizarFiltros({ ...aplicados, pagina })}
+                onLimite={limite => actualizarFiltros({ ...aplicados, pagina: 1, limite })}
                 onVer={id => void abrirDetalle(id)} onCrear={() => setVista('crear')} />}
             {(vista === 'crear' || vista === 'editar') && <EmpleadoFormulario key={`${vista}-${seleccionado?.id ?? 'nuevo'}`}
                 empleado={vista === 'editar' ? seleccionado : null} guardando={ocupada}

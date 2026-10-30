@@ -6,6 +6,17 @@ import type { Rol } from '../roles/roles.types';
 import AccesoForm from './AccesoForm';
 import { Button, DataTable, StatePanel, StatusBadge } from '../../shared/ui';
 
+async function listarEmpleadosActivos() {
+    const empleados: EmpleadoResumen[] = [];
+    let pagina = 1;
+    for (;;) {
+        const resultado = await listarEmpleados({ estado: 'activos', pagina, limite: 100 });
+        empleados.push(...resultado.items);
+        if (!resultado.hayMas) return empleados;
+        pagina++;
+    }
+}
+
 export default function UsuariosManager() {
     const [usuarios, setUsuarios] = useState<UsuarioAcceso[]>([]);
     const [roles, setRoles] = useState<Rol[]>([]);
@@ -21,8 +32,8 @@ export default function UsuariosManager() {
     const [guardando, setGuardando] = useState(false);
     useEffect(() => {
         let vigente = true;
-        void Promise.all([listarUsuarios(), listarRolesAcceso(), listarEmpleados({ estado: 'activos', limite: 100 })])
-            .then(([usuarios, roles, empleados]) => { if (vigente) { setUsuarios(usuarios); setRoles(roles); setEmpleados(empleados.items); setError(null); } })
+        void Promise.all([listarUsuarios(), listarRolesAcceso(), listarEmpleadosActivos()])
+            .then(([usuarios, roles, empleados]) => { if (vigente) { setUsuarios(usuarios); setRoles(roles); setEmpleados(empleados); setError(null); } })
             .catch(error => { if (vigente) setError(error instanceof Error ? error.message : 'No se pudieron cargar los accesos.'); })
             .finally(() => { if (vigente) setCargando(false); });
         return () => { vigente = false; };

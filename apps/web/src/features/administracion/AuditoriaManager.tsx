@@ -18,8 +18,8 @@ export default function AuditoriaManager() {
     return <section><div className="section-heading"><div><h2>Auditoría</h2><p>Trazabilidad de operaciones: actor, fecha y registro afectado.</p></div><Button onClick={() => setRecarga(valor => valor + 1)}>Actualizar</Button></div>
         {error && <StatePanel type="error" title={error} />}
         {!datos && !error && <StatePanel type="loading" title="Cargando auditoría…" />}
-        {datos && <div className="card list-card"><DataTable label="Auditoría"><thead><tr><th>Fecha</th><th>Actor</th><th>Entidad</th><th>Registro</th><th>Acción</th></tr></thead><tbody>{datos.items.map(item => <tr key={item.id}><td data-label="Fecha">{new Intl.DateTimeFormat('es-NI', { dateStyle: 'short', timeStyle: 'short', timeZone: 'America/Managua' }).format(new Date(item.fecha))}</td><td data-label="Actor">{item.usuario?.identificador ?? 'Sistema'}</td><td data-label="Entidad">{item.entidad}</td><td data-label="Registro">{item.entidadId}</td><td data-label="Acción">{item.accion.replaceAll('_', ' ')}</td></tr>)}</tbody></DataTable>
+        {datos && <div className="card list-card"><TablePagination pagina={pagina} hayMas={datos.hayMas} cantidad={datos.items.length} etiqueta="operaciones" onPagina={setPagina} /><DataTable label="Auditoría"><thead><tr><th>Fecha</th><th>Actor</th><th>Entidad</th><th>Registro</th><th>Acción</th></tr></thead><tbody>{datos.items.map(item => <tr key={item.id}><td data-label="Fecha">{new Intl.DateTimeFormat('es-NI', { dateStyle: 'short', timeStyle: 'short', timeZone: 'America/Managua' }).format(new Date(item.fecha))}</td><td data-label="Actor">{item.usuario?.identificador ?? 'Sistema'}</td><td data-label="Entidad">{item.entidad}</td><td data-label="Registro">{item.entidadId}</td><td data-label="Acción">{item.accion.replaceAll('_', ' ')}</td></tr>)}</tbody></DataTable>
             {datos.items.length === 0 && <StatePanel type="empty" title="Sin operaciones registradas" />}
-            <TablePagination pagina={pagina} hayMas={datos.hayMas} onPagina={setPagina} /></div>}
+            </div>}
     </section>;
 }

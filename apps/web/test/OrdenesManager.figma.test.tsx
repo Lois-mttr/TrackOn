@@ -68,7 +68,7 @@ describe('Presentación de Órdenes según Figma y backend', () => {
     it('mantiene los permisos para técnicos en la nueva interfaz', async () => {
         render(<OrdenesManager puedeGestionar={false} />);
         await screen.findByText('OT-140');
-        expect(screen.queryByRole('button', { name: '+ Nueva orden' })).toBeNull();
+        expect(screen.queryByRole('button', { name: 'Nueva orden' })).toBeNull();
         expect(screen.getByRole('button', { name: 'Ver OT-140' })).toBeTruthy();
         expect(screen.queryByRole('button', { name: 'Editar OT-140' })).toBeNull();
     });

@@ -1,4 +1,5 @@
-import type { ReactNode } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
+import { ChevronDown, Menu } from "lucide-react";
 
 interface HeaderProps {
     usuarioNombre: string;
@@ -13,11 +14,34 @@ function iniciales(nombre: string): string {
 
 export function Header({ usuarioNombre, onLogout, onOpenMenu, acciones }: Readonly<HeaderProps>) {
     const [nombre, rol = "Usuario"] = usuarioNombre.split(" · ");
+    const [cuentaAbierta, setCuentaAbierta] = useState(false);
+    const cuentaRef = useRef<HTMLDivElement>(null);
+    const botonCuentaRef = useRef<HTMLButtonElement>(null);
+    const salirRef = useRef<HTMLButtonElement>(null);
+
+    useEffect(() => {
+        if (!cuentaAbierta) return;
+        const cerrarFuera = (event: MouseEvent) => {
+            if (!cuentaRef.current?.contains(event.target as Node)) setCuentaAbierta(false);
+        };
+        const cerrarConTeclado = (event: KeyboardEvent) => {
+            if (event.key === "Escape") {
+                setCuentaAbierta(false);
+                botonCuentaRef.current?.focus();
+            }
+        };
+        document.addEventListener("mousedown", cerrarFuera);
+        document.addEventListener("keydown", cerrarConTeclado);
+        return () => {
+            document.removeEventListener("mousedown", cerrarFuera);
+            document.removeEventListener("keydown", cerrarConTeclado);
+        };
+    }, [cuentaAbierta]);
 
     return (
         <header className="topbar figma-topbar">
             <button type="button" className="menu-toggle" aria-label="Abrir navegación" onClick={onOpenMenu}>
-                ☰
+                <Menu aria-hidden="true" size={21} strokeWidth={1.9} />
             </button>
             <div className="figma-brand-lockup">
                 <img className="brand-logo" src="/logo-multicas.png" alt="MULTICAS" />
@@ -31,15 +55,34 @@ export function Header({ usuarioNombre, onLogout, onOpenMenu, acciones }: Readon
             </div>
             <div className="topbar-context figma-user-actions">
                 {acciones}
-                <span className="figma-user-info">
-                    <strong>{nombre}</strong>
-                    <small>{rol}</small>
-                </span>
-                <span className="figma-user-avatar" aria-hidden="true">{iniciales(nombre)}</span>
-                <button type="button" className="figma-logout" aria-label="Cerrar sesión" title="Cerrar sesión" onClick={onLogout}>
-                    <svg className="tk-logout-icon" aria-hidden="true" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2"><path d="M9 4H4v16h5M14 7l5 5-5 5M9 12h10" /></svg>
-                    <span>Cerrar sesión</span>
-                </button>
+                <div className="figma-account" ref={cuentaRef}>
+                    <button ref={botonCuentaRef} type="button" className="figma-account-trigger"
+                        aria-label={`Abrir menú de cuenta de ${nombre}`} aria-haspopup="menu" aria-expanded={cuentaAbierta}
+                        onClick={() => setCuentaAbierta(abierta => !abierta)}
+                        onKeyDown={event => {
+                            if (event.key === "ArrowDown") {
+                                event.preventDefault();
+                                setCuentaAbierta(true);
+                                requestAnimationFrame(() => salirRef.current?.focus());
+                            }
+                        }}>
+                        <span className="figma-user-info">
+                            <strong>{nombre}</strong>
+                            <small>{rol}</small>
+                        </span>
+                        <span className="figma-user-avatar" aria-hidden="true">{iniciales(nombre)}</span>
+                        <ChevronDown className="figma-account-chevron" aria-hidden="true" size={16} strokeWidth={1.8} />
+                    </button>
+                    {cuentaAbierta && <div className="figma-account-menu" role="menu">
+                        <div className="figma-account-summary">
+                            <strong>{nombre}</strong>
+                            <span>{rol}</span>
+                        </div>
+                        <button ref={salirRef} type="button" role="menuitem" onClick={() => { setCuentaAbierta(false); onLogout(); }}>
+                            Cerrar sesión
+                        </button>
+                    </div>}
+                </div>
             </div>
         </header>
     );

@@ -1,4 +1,5 @@
 import type { ButtonHTMLAttributes, ReactNode } from 'react'
+import { ArrowLeft, ArrowRight, MoreHorizontal } from 'lucide-react'
 
 type ButtonVariant = 'primary' | 'secondary' | 'danger' | 'ghost'
 export function Button({ variant = 'secondary', loading, className = '', children, disabled, ...props }: Readonly<ButtonHTMLAttributes<HTMLButtonElement> & { variant?: ButtonVariant; loading?: boolean }>) {
@@ -10,7 +11,7 @@ export function PageHeader({ eyebrow, title, description, action }: Readonly<{ e
 }
 
 export function StatusBadge({ active, label }: Readonly<{ active: boolean; label?: string }>) {
-  return <span className={`status-badge ${active ? 'status-badge--success' : 'status-badge--neutral'}`}><span aria-hidden="true">●</span>{label ?? (active ? 'Activo' : 'Inactivo')}</span>
+  return <span className={`status-badge ${active ? 'status-badge--success' : 'status-badge--neutral'}`}><span className="status-badge__dot" aria-hidden="true" />{label ?? (active ? 'Activo' : 'Inactivo')}</span>
 }
 
 export function StatePanel({ type, title, description, action }: Readonly<{ type: 'loading' | 'empty' | 'error'; title: string; description?: string; action?: ReactNode }>) {
@@ -18,7 +19,7 @@ export function StatePanel({ type, title, description, action }: Readonly<{ type
 }
 
 export function ActionMenu({ children, label = 'Más acciones' }: Readonly<{ children: ReactNode; label?: string }>) {
-  return <details className="action-menu"><summary aria-label={label}>⋮</summary><div className="action-menu__content">{children}</div></details>
+  return <details className="action-menu"><summary aria-label={label} title={label}><MoreHorizontal aria-hidden="true" size={18} strokeWidth={1.9} /></summary><div className="action-menu__content">{children}</div></details>
 }
 
 export function DataTable({ children, className = '', label }: Readonly<{ children: ReactNode; className?: string; label?: string }>) {
@@ -35,7 +36,7 @@ export function TablePagination({ pagina, hayMas, cargando = false, limite = 25,
     {onLimite && <label className="shared-pagination__size">Mostrar<select aria-label="Filas por página" value={limite} disabled={cargando} onChange={event => onLimite(Number(event.target.value))}>
       {[10, 25, 50, 100].map(valor => <option key={valor} value={valor}>{valor}</option>)}
     </select><span>por página</span></label>}
-    <div className="shared-pagination__actions"><Button aria-label="Anterior" disabled={cargando || pagina === 1} onClick={() => onPagina(pagina - 1)}>← Anterior</Button>
-      <Button aria-label="Siguiente" disabled={cargando || !hayMas} onClick={() => onPagina(pagina + 1)}>Siguiente →</Button></div>
+    <div className="shared-pagination__actions"><Button aria-label="Anterior" disabled={cargando || pagina === 1} onClick={() => onPagina(pagina - 1)}><ArrowLeft aria-hidden="true" size={16} />Anterior</Button>
+      <Button aria-label="Siguiente" disabled={cargando || !hayMas} onClick={() => onPagina(pagina + 1)}>Siguiente<ArrowRight aria-hidden="true" size={16} /></Button></div>
   </nav>
 }

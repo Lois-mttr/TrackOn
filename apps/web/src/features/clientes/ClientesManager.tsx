@@ -101,7 +101,6 @@ export default function ClientesManager({ puedeGestionar }: Readonly<Props>) {
 
     useEffect(() => {
         let vigente = true;
-        setCargando(true);
         void listarClientes({ buscar: busqueda, tipo: filtroTipo, estado: filtroEstado, pagina: paginaClientes, limite: limiteClientes }).then(resultado => {
             if (vigente) {
                 const paginaResultado = Array.isArray(resultado) ? { items: resultado, hayMas: false } : resultado;
@@ -216,7 +215,6 @@ export default function ClientesManager({ puedeGestionar }: Readonly<Props>) {
 
     return (
         <section className="tk-clientes" aria-labelledby="tk-clientes-title">
-            <div className="tk-clientes-breadcrumb">Gestión comercial › <strong>Clientes</strong></div>
             <div className="section-heading tk-clientes-heading">
                 <div>
                     <h2 id="tk-clientes-title">{vista === "crear" ? "Registrar cliente" :
@@ -230,9 +228,9 @@ export default function ClientesManager({ puedeGestionar }: Readonly<Props>) {
                 </div>
                 {vista === "listado" && puedeGestionar && <button className="primary-button" type="button"
                     onClick={() => { setFormulario(formularioVacio); setError(null); setMensaje(null); setVista("crear"); }}>
-                    + Registrar cliente
+                    Registrar cliente
                 </button>}
-                {vista !== "listado" && <button className="secondary-button" type="button" onClick={volver}>← Clientes</button>}
+                {vista !== "listado" && <button className="secondary-button" type="button" onClick={volver}>Volver a clientes</button>}
             </div>
             {error && <p className="notice error" role="alert">{error}</p>}
             {mensaje && <output className="notice exito">{mensaje}</output>}
@@ -240,27 +238,27 @@ export default function ClientesManager({ puedeGestionar }: Readonly<Props>) {
             {vista === "listado" && <>
                 <div className="card tk-clientes-filtros">
                     <label>Buscar
-                        <input aria-label="Buscar cliente" value={busqueda} onChange={e => { setBusqueda(e.target.value); setPaginaClientes(1); }}
+                        <input aria-label="Buscar cliente" value={busqueda} onChange={e => { setCargando(true); setBusqueda(e.target.value); setPaginaClientes(1); }}
                             placeholder="Código, nombre o identificación" />
                     </label>
                     <label>Tipo de cliente
-                        <select aria-label="Filtrar tipo de cliente" value={filtroTipo} onChange={e => { setFiltroTipo(e.target.value); setPaginaClientes(1); }}>
+                        <select aria-label="Filtrar tipo de cliente" value={filtroTipo} onChange={e => { setCargando(true); setFiltroTipo(e.target.value); setPaginaClientes(1); }}>
                             <option value="todos">Todos</option><option value="NATURAL">Persona natural</option>
                             <option value="EMPRESA">Persona jurídica</option>
                         </select>
                     </label>
                     <label>Estado
                         <select aria-label="Filtrar estado de cliente" value={filtroEstado}
-                            onChange={e => { setFiltroEstado(e.target.value); setPaginaClientes(1); }}>
+                            onChange={e => { setCargando(true); setFiltroEstado(e.target.value); setPaginaClientes(1); }}>
                             <option value="todos">Todos</option><option value="activos">Activos</option>
                             <option value="inactivos">Inactivos</option>
                         </select>
                     </label>
-                    <button type="button" className="text-button" onClick={() => { setBusqueda(''); setFiltroTipo('todos'); setFiltroEstado('todos'); setPaginaClientes(1); }}>Limpiar</button>
+                    <button type="button" className="text-button" onClick={() => { setCargando(true); setBusqueda(''); setFiltroTipo('todos'); setFiltroEstado('todos'); setPaginaClientes(1); }}>Limpiar</button>
                 </div>
                 <div className="card list-card">
                     <TablePagination pagina={paginaClientes} limite={limiteClientes} hayMas={hayMasClientes} cargando={cargando} cantidad={filtrados.length} etiqueta="clientes"
-                        onPagina={setPaginaClientes} onLimite={valor => { setLimiteClientes(valor); setPaginaClientes(1); }} />
+                        onPagina={valor => { setCargando(true); setPaginaClientes(valor); }} onLimite={valor => { setCargando(true); setLimiteClientes(valor); setPaginaClientes(1); }} />
                     {cargando ? <p className="empty">Cargando clientes…</p> : filtrados.length === 0 ?
                         <p className="empty">No hay clientes que coincidan con los filtros.</p> :
                         <DataTable className="tk-clientes-tabla" label="Clientes">
@@ -354,7 +352,7 @@ export default function ClientesManager({ puedeGestionar }: Readonly<Props>) {
                         {puedeGestionar && seleccionado.activo && !registrandoUbicacion &&
                             <button type="button" className="primary-button" onClick={() => {
                                 setRegistrandoUbicacion(true); setError(null);
-                            }}>+ Registrar ubicación</button>}
+                            }}>Registrar ubicación</button>}
                     </div>
                     {registrandoUbicacion && <form className="tk-clientes-ubicacion-form form-card" onSubmit={e => void guardarUbicacion(e)}>
                         <div className="card-title"><h3>Nueva ubicación</h3>

@@ -16,18 +16,6 @@ interface MainLayoutProps {
     accionesHeader?: ReactNode;
 }
 
-const etiquetas: Record<Seccion, string> = {
-    agenda: "Agenda", administracion: "Usuarios y acceso", auditoria: "Auditoría",
-    dashboard: "Dashboard",
-    materiales: "Materiales",
-    clientes: "Clientes",
-    empleados: "Empleados",
-    ordenes: "Órdenes de trabajo",
-    equipos: "Equipos",
-    servicios: "Servicios",
-    cuadrillas: "Cuadrillas",
-};
-
 export function MainLayout({
     children,
     usuarioNombre,
@@ -61,11 +49,6 @@ export function MainLayout({
                 puedeAdministrar={puedeAdministrar}
             />
             <main className="workspace">
-                {seccion !== "ordenes" && seccion !== "dashboard" && (
-                    <div className="tk-context-breadcrumb">
-                        {seccion === 'agenda' ? 'Operaciones' : ['administracion', 'auditoria'].includes(seccion) ? 'Administración' : 'Recursos'} <span aria-hidden="true">›</span> <strong>{etiquetas[seccion]}</strong>
-                    </div>
-                )}
                 {children}
             </main>
         </div>

@@ -66,7 +66,7 @@ async function esperarListado() {
 }
 
 function abrirAlta() {
-    fireEvent.click(screen.getByRole('button', { name: '+ Nueva orden' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Nueva orden' }));
 }
 
 describe('Gestión web de órdenes de trabajo', () => {
@@ -273,7 +273,7 @@ describe('Gestión web de órdenes de trabajo', () => {
     it('respeta permisos de solo consulta para técnicos', async () => {
         render(<OrdenesManager puedeGestionar={false} />);
         await esperarListado();
-        expect(screen.queryByRole('button', { name: '+ Nueva orden' })).toBeNull();
+        expect(screen.queryByRole('button', { name: 'Nueva orden' })).toBeNull();
         fireEvent.click(screen.getByRole('button', { name: 'Ver OT-140' }));
         await screen.findByText('Historial de estados');
         expect(screen.queryByRole('button', { name: 'Iniciar trabajo' })).toBeNull();

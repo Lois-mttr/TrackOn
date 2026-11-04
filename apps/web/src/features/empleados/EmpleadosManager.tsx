@@ -100,8 +100,8 @@ export default function EmpleadosManager() {
                 <h2 id="tk-employees-title">{titulo}</h2>
                 <p>Gestión de personal interno de MULTICAS y habilitación técnica.</p>
             </div>
-            {vista === 'listado' ? <button type="button" className="tk-employee-primary" onClick={() => { setAviso(null); setSeleccionado(null); setVista('crear'); }}>+ Registrar empleado</button>
-                : <button type="button" className="tk-employee-secondary" onClick={volver}>← Volver al listado</button>}
+            {vista === 'listado' ? <button type="button" className="tk-employee-primary" onClick={() => { setAviso(null); setSeleccionado(null); setVista('crear'); }}>Registrar empleado</button>
+                : <button type="button" className="tk-employee-secondary" onClick={volver}>Volver al listado</button>}
         </header>
         {aviso && <div role="alert" className={`tk-employee-notice ${aviso.tipo}`}>{aviso.texto}</div>}
         {cargando && !datos ? <div className="tk-employee-panel tk-employee-loading" role="status">Cargando información de empleados…</div> : <>

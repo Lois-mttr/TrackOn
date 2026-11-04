@@ -42,7 +42,7 @@ async function cargarListado() {
 
 function abrirFormulario() {
     fireEvent.click(
-        screen.getByRole("button", { name: /\+ Crear servicio/ }),
+        screen.getByRole("button", { name: /Crear servicio/ }),
     );
 }
 
@@ -154,7 +154,7 @@ describe("Gestión de Servicios", () => {
         expect(screen.getByText("Datos del servicio")).toBeTruthy();
 
         fireEvent.click(
-            screen.getByRole("button", { name: /Servicios/ }),
+            screen.getByRole("button", { name: /Volver a servicios/i }),
         );
 
         expect(
@@ -338,7 +338,7 @@ describe("Gestión de Servicios", () => {
         expect(screen.getByText("SRV-001")).toBeTruthy();
 
         expect(
-            screen.queryByRole("button", { name: /\+ Crear servicio/ }),
+            screen.queryByRole("button", { name: /Crear servicio/ }),
         ).toBeNull();
 
         expect(

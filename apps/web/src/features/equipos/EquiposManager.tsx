@@ -294,7 +294,7 @@ export default function EquiposManager({ puedeGestionar = true }: Readonly<Equip
                 </div>
                 {puedeGestionar && !formularioVisible && (
                     <button className="primary-button" type="button" onClick={comenzarRegistro}>
-                        + Registrar equipo
+                        Registrar equipo
                     </button>
                 )}
             </div>
@@ -317,7 +317,7 @@ export default function EquiposManager({ puedeGestionar = true }: Readonly<Equip
                                 onClick={cerrarFormulario}
                                 disabled={guardando}
                             >
-                                ← Equipos
+                                Volver a equipos
                             </button>
                         </div>
                         <label>

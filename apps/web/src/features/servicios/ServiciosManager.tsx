@@ -176,7 +176,7 @@ export default function ServiciosManager({ puedeGestionar = true }: Readonly<Ser
                             setFormularioVisible(true);
                         }}
                     >
-                        + Crear servicio
+                        Crear servicio
                     </button>
                 )}
             </div>
@@ -191,7 +191,7 @@ export default function ServiciosManager({ puedeGestionar = true }: Readonly<Ser
                         <div className="card-title">
                             <h3>Datos del servicio</h3>
                             <button type="button" className="text-button" onClick={cancelar}>
-                                ← Servicios
+                                Volver a servicios
                             </button>
                         </div>
                         <label>

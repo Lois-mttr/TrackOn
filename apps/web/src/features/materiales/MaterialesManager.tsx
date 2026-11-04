@@ -59,7 +59,7 @@ export default function MaterialesManager({ puedeGestionar }: Readonly<{ puedeGe
     return <section aria-labelledby="materiales-titulo">
         <div className="section-heading"><div><h2 id="materiales-titulo">{formulario ? (editando ? 'Editar material' : 'Registrar material') : 'Materiales'}</h2>
             <p>Administra los insumos y sus unidades para registrar el consumo en cada intervención.</p></div>
-            {puedeGestionar && !formulario && <Button variant="primary" onClick={() => { setEditando(null); setFormulario({ ...vacio }); setMensaje(null); }}>+ Registrar material</Button>}
+            {puedeGestionar && !formulario && <Button variant="primary" onClick={() => { setEditando(null); setFormulario({ ...vacio }); setMensaje(null); }}>Registrar material</Button>}
         </div>
         {mensaje && <div className={`notice ${mensaje.error ? 'error' : 'exito'}`} role={mensaje.error ? 'alert' : 'status'}>{mensaje.texto}</div>}
         {formulario ? <form className="card form-card" onSubmit={event => void guardar(event)}>

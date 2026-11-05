@@ -14,8 +14,9 @@ import OrdenAcciones from './OrdenAcciones';
 import { permiteAccionOrden, type AccionOrden } from './ordenes.acciones';
 import { TablePagination } from '../../shared/ui';
 import { Search, SlidersHorizontal } from 'lucide-react';
+import { DEFAULT_PAGE_SIZE } from '../../shared/pagination';
 
-const filtrosIniciales: FiltrosOrdenes = { estado: '', buscar: '', pagina: 1, limite: 25 };
+const filtrosIniciales: FiltrosOrdenes = { estado: '', buscar: '', pagina: 1, limite: DEFAULT_PAGE_SIZE };
 const estados: EstadoOrden[] = [
     'BORRADOR', 'PENDIENTE', 'ASIGNADA', 'EN_EJECUCION', 'EN_REVISION', 'CERRADA', 'CANCELADA',
 ];
@@ -432,9 +433,9 @@ export default function OrdenesManager({ puedeGestionar = true, ordenInicial, cr
                         </details>
                     </form>
                     <div className="card tk-table-card">
+                        {contenidoLista()}
                         <TablePagination pagina={aplicados.pagina} limite={aplicados.limite} hayMas={pagina.hayMas} cargando={cargando} cantidad={pagina.items.length} etiqueta="órdenes"
                             onPagina={numero => cargar({ ...aplicados, pagina: numero })} />
-                        {contenidoLista()}
                     </div>
                 </>
             )}

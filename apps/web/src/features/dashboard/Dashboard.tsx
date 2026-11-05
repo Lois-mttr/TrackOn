@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { obtenerResumen, type ResumenOperativo } from './dashboard.api';
-import { Button, StatePanel } from '../../shared/ui';
+import { Button, DataTable, StatePanel } from '../../shared/ui';
 
 export default function Dashboard({ onOrden, onCuadrillas }: Readonly<{ onOrden: (id?: number) => void; onCuadrillas: () => void }>) {
     const [datos, setDatos] = useState<ResumenOperativo | null>(null);
@@ -36,9 +36,11 @@ function DashboardContenido({ datos, onOrden, onCuadrillas }: Readonly<{ datos: 
             <div><small>Cobertura operativa</small><strong>{datos.cuadrillas.filter(item => item.ordenesActivas === 0).length} de {datos.cuadrillas.length} cuadrillas sin órdenes activas</strong></div></div>
         <div className="tk-dashboard-kpis">{tarjetas.map(item => <article key={item.titulo} className="tk-kpi"><h3>{item.titulo}</h3><strong>{item.valor}</strong><p>{item.detalle}</p></article>)}</div>
         <div className="tk-dashboard-body"><div>
-            <section className="card tk-dashboard-list"><h3>Requieren atención</h3><p>Órdenes pendientes de asignación o revisión.</p>
+            <section className="card tk-dashboard-list tk-attention"><div className="tk-attention__heading"><div><h3>Requieren atención</h3><p>Órdenes pendientes de asignación o revisión.</p></div>{datos.requierenAtencion.length > 0 && <span>{datos.requierenAtencion.length} órdenes</span>}</div>
                 {datos.requierenAtencion.length === 0 && <StatePanel type="empty" title="Sin órdenes pendientes de atención" />}
-                {datos.requierenAtencion.map(item => <div className="tk-dashboard-row" key={item.id}><div><strong>OT-{item.numero} · {item.clienteNombreRegistrado}</strong><p>{item.solicitud}</p><small>{item.prioridad} · {item.estadoCodigo.replaceAll('_', ' ')}</small></div><Button onClick={() => onOrden(item.id)}>{item.estadoCodigo === 'EN_REVISION' ? 'Revisar' : 'Asignar'}</Button></div>)}
+                {datos.requierenAtencion.length > 0 && <DataTable className="tk-attention-table" label="Órdenes que requieren atención"><thead><tr><th>OT</th><th>Cliente</th><th>Descripción</th><th>Prioridad</th><th>Estado</th><th><span className="sr-only">Acción</span></th></tr></thead><tbody>
+                    {datos.requierenAtencion.map(item => <tr key={item.id}><td data-label="OT"><strong className="tk-attention-ot">OT-{item.numero}</strong></td><td data-label="Cliente"><span className="tk-attention-client">{item.clienteNombreRegistrado}</span></td><td data-label="Descripción"><span className="tk-attention-description" title={item.solicitud}>{item.solicitud}</span></td><td data-label="Prioridad"><span className="tk-attention-badge tk-attention-priority" data-priority={item.prioridad}>{item.prioridad}</span></td><td data-label="Estado"><span className="tk-attention-badge tk-attention-status" data-status={item.estadoCodigo}>{item.estadoCodigo.replaceAll('_', ' ')}</span></td><td data-label="Acción" className="tk-attention-action"><Button onClick={() => onOrden(item.id)}>{item.estadoCodigo === 'EN_REVISION' ? 'Revisar' : 'Asignar'}</Button></td></tr>)}
+                </tbody></DataTable>}
             </section>
             <section className="card tk-dashboard-list"><h3>Próximas atenciones</h3>{datos.proximas.length === 0 && <p>No hay más atenciones programadas para hoy.</p>}
                 {datos.proximas.map(item => <div className="tk-dashboard-row" key={item.id}><div><strong>{item.fechaProgramada && new Intl.DateTimeFormat('es-NI', { timeStyle: 'short', timeZone: datos.zonaHoraria }).format(new Date(item.fechaProgramada))} · {item.clienteNombreRegistrado}</strong><small>OT-{item.numero}</small></div><Button onClick={() => onOrden(item.id)}>Consultar</Button></div>)}

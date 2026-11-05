@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { listarRoles } from './roles.api'
 import type { Rol } from './roles.types'
+import { DataTable } from '../../shared/ui'
 
 type Estado =
   | { tipo: 'inicial' }
@@ -72,7 +73,7 @@ export default function RolesList() {
 
       {estado.tipo === 'exito' && estado.roles.length > 0 && (
         <div className="table-container">
-          <table className="table is-fullwidth is-striped is-hoverable">
+          <DataTable label="Roles del sistema">
             <caption className="has-text-left mb-2">
               Perfiles y descripción de sus funciones
             </caption>
@@ -88,17 +89,17 @@ export default function RolesList() {
             <tbody>
               {estado.roles.map((rol) => (
                 <tr key={rol.id}>
-                  <td>
+                  <td data-label="Código">
                     <span className="tag is-link is-light">
                       {rol.cod}
                     </span>
                   </td>
-                  <th scope="row">{rol.nombre}</th>
-                  <td>{rol.descripcion ?? 'Sin descripción'}</td>
+                  <td data-label="Nombre"><strong>{rol.nombre}</strong></td>
+                  <td data-label="Descripción">{rol.descripcion ?? 'Sin descripción'}</td>
                 </tr>
               ))}
             </tbody>
-          </table>
+          </DataTable>
         </div>
       )}
     </section>

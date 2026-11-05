@@ -156,7 +156,9 @@ body, #root { min-width: 0; max-width: 100%; }
   .figma-brand-product { font-size: 21px; color: var(--tk-purple); }
   .figma-brand-lockup .brand-logo { width: 30px; height: 30px; }
   .figma-topbar .figma-user-info,
-  .figma-topbar .figma-logout { display: none; }
+  .figma-topbar .figma-account-chevron { display: none; }
+  .figma-topbar .figma-account-trigger { min-width:44px; padding:4px; justify-content:center; }
+  .figma-topbar .figma-account-menu { position:fixed; top:calc(var(--tk-responsive-header-height) - 2px); right:12px; width:min(260px,calc(100vw - 24px)); }
   .figma-topbar .figma-user-avatar { display: grid; width: 36px; height: 36px; flex-basis: 36px; }
   .figma-topbar .figma-user-actions { gap: 8px; flex-shrink: 0; }
   .figma-topbar .notification-area { margin: 0; }
@@ -225,7 +227,7 @@ body, #root { min-width: 0; max-width: 100%; }
     border: 1px solid var(--tk-border);
     border-radius: 10px;
     background: #fff;
-    box-shadow: 0 2px 7px rgb(47 37 77 / 3%);
+    box-shadow: none;
     overflow: hidden;
   }
   .workspace .table-wrap td {
@@ -338,7 +340,12 @@ body, #root { min-width: 0; max-width: 100%; }
 
 /* Evitar animaciones si el usuario lo solicita. */
 @media (prefers-reduced-motion: reduce) {
-  .figma-sidebar { transition: none; }
+  *, *::before, *::after {
+    scroll-behavior: auto !important;
+    animation-duration: .01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: .01ms !important;
+  }
 }
 
 /* Login: en tablet pequeña mantener una sola columna legible. */

@@ -13,8 +13,10 @@ import DesactivarOrdenForm from './DesactivarOrdenForm';
 import OrdenAcciones from './OrdenAcciones';
 import { permiteAccionOrden, type AccionOrden } from './ordenes.acciones';
 import { TablePagination } from '../../shared/ui';
+import { Search, SlidersHorizontal } from 'lucide-react';
+import { DEFAULT_PAGE_SIZE } from '../../shared/pagination';
 
-const filtrosIniciales: FiltrosOrdenes = { estado: '', buscar: '', pagina: 1, limite: 25 };
+const filtrosIniciales: FiltrosOrdenes = { estado: '', buscar: '', pagina: 1, limite: DEFAULT_PAGE_SIZE };
 const estados: EstadoOrden[] = [
     'BORRADOR', 'PENDIENTE', 'ASIGNADA', 'EN_EJECUCION', 'EN_REVISION', 'CERRADA', 'CANCELADA',
 ];
@@ -373,16 +375,15 @@ export default function OrdenesManager({ puedeGestionar = true, ordenInicial, cr
 
     return (
         <section className="tk-orders" aria-labelledby="ordenes-titulo">
-            <div className="tk-breadcrumb">Gestión operativa › <span>Órdenes</span></div>
             <div className="tk-orders-heading">
                 <div>
                     <h2 id="ordenes-titulo">Órdenes de trabajo</h2>
-                    <p>Consulta, edita o asigna una orden con los iconos de cada fila.</p>
+                    <p>Consulta, edita y asigna el trabajo desde un mismo listado.</p>
                 </div>
                 <div className="tk-order-toolbar"><button type="button" className="secondary-button" aria-label="Actualizar órdenes" disabled={cargando} onClick={() => { setMensaje(null); cargar(); }}>Actualizar</button>
                 {puedeGestionar && !creando && !detalle && !ordenInicial && (
                     <button type="button" className="primary-button tk-order-create"
-                        onClick={() => { setMensaje(null); setDetalle(null); setOperacion(null); setCreando(true); }}>+ Nueva orden</button>
+                        onClick={() => { setMensaje(null); setDetalle(null); setOperacion(null); setCreando(true); }}>Nueva orden</button>
                 )}</div>
             </div>
             {mensaje && !creando && !operacion && !detalle && !ordenInicial && <div className={`notice ${mensaje.tipo}`} role="alert">{mensaje.texto}</div>}
@@ -392,6 +393,7 @@ export default function OrdenesManager({ puedeGestionar = true, ordenInicial, cr
                         event.preventDefault(); setMensaje(null); cargar({ ...filtros, pagina: 1 });
                     }}>
                         <div className="tk-search-group">
+                            <Search className="tk-search-icon" aria-hidden="true" size={17} strokeWidth={1.8} />
                             <input aria-label="Buscar órdenes" placeholder="Buscar cliente o solicitud"
                                 value={filtros.buscar}
                                 maxLength={150} onChange={event => filtrar({ ...filtros, buscar: event.target.value }, true)} />
@@ -416,19 +418,24 @@ export default function OrdenesManager({ puedeGestionar = true, ordenInicial, cr
                         </select>
                         <button type="submit" className="secondary-button tk-search-submit">Buscar</button>
                         <button type="button" className="text-button" onClick={() => filtrar(filtrosIniciales)}>Limpiar</button>
-                        <label>Prioridad<select aria-label="Filtrar prioridad" value={filtros.prioridad ?? ''} onChange={event => filtrar({ ...filtros, prioridad: event.target.value as PrioridadOrden | '' })}>
-                            <option value="">Todas</option>{(['BAJA', 'MEDIA', 'ALTA', 'URGENTE'] as const).map(item => <option key={item} value={item}>{item.charAt(0) + item.slice(1).toLowerCase()}</option>)}
-                        </select></label>
-                        <label>Cliente<select aria-label="Filtrar cliente" value={filtros.clienteId ?? ''} onChange={event => filtrar({ ...filtros, clienteId: event.target.value })}>
-                            <option value="">Todos</option>{clientesDisponibles.map(item => <option key={item.cliente.id} value={item.cliente.id}>{nombreCliente(item)}</option>)}
-                        </select></label>
-                        <label>Programada desde<input type="date" aria-label="Programada desde" value={filtros.desde ?? ''} max={filtros.hasta || undefined} onChange={event => filtrar({ ...filtros, desde: event.target.value })} /></label>
-                        <label>Programada hasta<input type="date" aria-label="Programada hasta" value={filtros.hasta ?? ''} min={filtros.desde || undefined} onChange={event => filtrar({ ...filtros, hasta: event.target.value })} /></label>
+                        <details className="tk-advanced-filters">
+                            <summary><SlidersHorizontal aria-hidden="true" size={16} strokeWidth={1.8} />Más filtros</summary>
+                            <div className="tk-advanced-filters__content">
+                                <label>Prioridad<select aria-label="Filtrar prioridad" value={filtros.prioridad ?? ''} onChange={event => filtrar({ ...filtros, prioridad: event.target.value as PrioridadOrden | '' })}>
+                                    <option value="">Todas</option>{(['BAJA', 'MEDIA', 'ALTA', 'URGENTE'] as const).map(item => <option key={item} value={item}>{item.charAt(0) + item.slice(1).toLowerCase()}</option>)}
+                                </select></label>
+                                <label>Cliente<select aria-label="Filtrar cliente" value={filtros.clienteId ?? ''} onChange={event => filtrar({ ...filtros, clienteId: event.target.value })}>
+                                    <option value="">Todos</option>{clientesDisponibles.map(item => <option key={item.cliente.id} value={item.cliente.id}>{nombreCliente(item)}</option>)}
+                                </select></label>
+                                <label>Programada desde<input type="date" aria-label="Programada desde" value={filtros.desde ?? ''} max={filtros.hasta || undefined} onChange={event => filtrar({ ...filtros, desde: event.target.value })} /></label>
+                                <label>Programada hasta<input type="date" aria-label="Programada hasta" value={filtros.hasta ?? ''} min={filtros.desde || undefined} onChange={event => filtrar({ ...filtros, hasta: event.target.value })} /></label>
+                            </div>
+                        </details>
                     </form>
                     <div className="card tk-table-card">
+                        {contenidoLista()}
                         <TablePagination pagina={aplicados.pagina} limite={aplicados.limite} hayMas={pagina.hayMas} cargando={cargando} cantidad={pagina.items.length} etiqueta="órdenes"
                             onPagina={numero => cargar({ ...aplicados, pagina: numero })} />
-                        {contenidoLista()}
                     </div>
                 </>
             )}

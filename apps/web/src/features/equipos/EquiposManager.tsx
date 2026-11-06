@@ -481,8 +481,8 @@ export default function EquiposManager({ puedeGestionar = true }: Readonly<Equip
                                             <th>Equipo</th>
                                             <th>Cliente / ubicación</th>
                                             <th>Serie</th>
-                                            <th>Estado</th>
-                                            <th>Acciones</th>
+                                            <th data-align="center">Estado</th>
+                                            <th data-align="actions">Acciones</th>
                                         </tr>
                                     </thead>
                                     <tbody>
@@ -497,12 +497,12 @@ export default function EquiposManager({ puedeGestionar = true }: Readonly<Equip
                                                     <span>{equipo.ubicacion.nombre}</span>
                                                 </td>
                                                 <td data-label="Serie">{equipo.numeroSerie ?? "—"}</td>
-                                                <td data-label="Estado">
+                                                <td data-label="Estado" data-align="center">
                                                     <span className={`status ${equipo.activo ? "active" : "inactive"}`}>
                                                         {equipo.activo ? "Activo" : "Inactivo"}
                                                     </span>
                                                 </td>
-                                                <td data-label="Acciones" className="actions">
+                                                <td data-label="Acciones" data-align="actions" className="actions">
                                                     {puedeGestionar && (
                                                         <>
                                                             <button

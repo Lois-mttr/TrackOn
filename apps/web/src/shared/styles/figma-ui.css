@@ -221,7 +221,7 @@ body { font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSyst
 .workspace .section-heading .eyebrow { display:none; }
 .workspace .section-heading h2 { margin-top:0; }
 .workspace .section-heading .primary-button { white-space:nowrap; padding:0 18px; }
-.workspace .list-card > .filters { grid-template-columns:minmax(190px,1fr) minmax(145px,190px) auto; align-items:center; gap:10px; padding:18px; }
+.workspace .list-card > .filters { grid-template-columns:minmax(190px,1fr) minmax(145px,190px) auto auto; align-items:center; gap:10px; padding:18px; }
 .workspace .list-card > .filters .secondary-button { min-height:40px; }
 .workspace .crew-list { padding:12px 15px; }
 .workspace .crew-item { padding:15px 10px; border:1px solid var(--tk-border); border-radius:8px; margin-bottom:9px; background:#fff; }

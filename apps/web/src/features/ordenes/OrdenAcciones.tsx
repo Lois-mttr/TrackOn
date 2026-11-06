@@ -1,5 +1,6 @@
 import type { OrdenResumen } from './ordenes.types';
 import { permiteAccionOrden, type AccionOrden } from './ordenes.acciones';
+import { RowActions } from '../../shared/ui';
 import { CircleOff, Eye, Pencil, UserRoundPlus, type LucideIcon } from 'lucide-react';
 
 const acciones: ReadonlyArray<{ tipo: AccionOrden; etiqueta: string; ayuda: string; icono: LucideIcon }> = [
@@ -12,7 +13,7 @@ const acciones: ReadonlyArray<{ tipo: AccionOrden; etiqueta: string; ayuda: stri
 export default function OrdenAcciones({ orden, puedeGestionar, onAction }: Readonly<{
     orden: OrdenResumen; puedeGestionar: boolean; onAction: (accion: AccionOrden) => void;
 }>) {
-    return <div className="tk-order-actions" role="group" aria-label={`Acciones de OT-${orden.numero}`}>
+    return <RowActions className="tk-order-actions" label={`Acciones de OT-${orden.numero}`}>
         {acciones.filter(accion => puedeGestionar || accion.tipo === 'ver').map(accion => {
             const Icono = accion.icono;
             const habilitada = permiteAccionOrden(orden.estadoCodigo, puedeGestionar, accion.tipo);
@@ -21,8 +22,8 @@ export default function OrdenAcciones({ orden, puedeGestionar, onAction }: Reado
             return <button key={accion.tipo} type="button" className={`tk-order-icon-action tk-order-icon-action--${accion.tipo}`}
                 aria-label={`${accion.etiqueta} OT-${orden.numero}`} title={ayuda} disabled={!habilitada}
                 onClick={() => onAction(accion.tipo)}>
-                <Icono aria-hidden="true" size={18} strokeWidth={1.8} /><span>{accion.etiqueta}</span>
+                <Icono aria-hidden="true" size={15} strokeWidth={1.8} /><span>{accion.etiqueta}</span>
             </button>;
         })}
-    </div>;
+    </RowActions>;
 }

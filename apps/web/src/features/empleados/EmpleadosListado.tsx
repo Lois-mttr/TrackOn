@@ -41,13 +41,13 @@ export default function EmpleadosListado({ datos, filtros, cargando, onFiltros, 
         <div className="tk-employee-panel tk-employee-list" aria-busy={cargando}>
             <div className="tk-employee-list-caption">{datos.total} empleados encontrados</div>
             {empleados.length ? <DataTable className="tk-employee-table" label="Empleados">
-                <thead><tr><th>Código</th><th>Empleado</th><th>Estado</th><th>Habilitación técnica</th><th>Acciones</th></tr></thead>
+                <thead><tr><th>Código</th><th>Empleado</th><th data-align="center">Estado</th><th data-align="center">Habilitación técnica</th><th data-align="actions">Acciones</th></tr></thead>
                 <tbody>{empleados.map(item => <tr key={item.id}>
                     <td data-label="Código"><strong className="tk-employee-code">{item.codEmpleado}</strong></td>
                     <td data-label="Empleado">{nombreEmpleado(item)}</td>
-                    <td data-label="Estado"><span className={`tk-employee-pill ${item.active ? 'is-active' : 'is-inactive'}`}>{item.active ? 'Activo' : 'Inactivo'}</span></td>
-                    <td data-label="Habilitación técnica"><span className={`tk-employee-pill ${item.habilitadoComoTecnico ? 'is-tech' : 'is-neutral'}`}>{item.habilitadoComoTecnico ? 'Habilitado' : 'No habilitado'}</span></td>
-                    <td data-label="Acciones" className="actions"><button type="button" className="tk-employee-link" onClick={() => onVer(item.id)}>Ver detalle</button>
+                    <td data-label="Estado" data-align="center"><span className={`tk-employee-pill ${item.active ? 'is-active' : 'is-inactive'}`}>{item.active ? 'Activo' : 'Inactivo'}</span></td>
+                    <td data-label="Habilitación técnica" data-align="center"><span className={`tk-employee-pill ${item.habilitadoComoTecnico ? 'is-tech' : 'is-neutral'}`}>{item.habilitadoComoTecnico ? 'Habilitado' : 'No habilitado'}</span></td>
+                    <td data-label="Acciones" data-align="actions" className="actions"><button type="button" className="tk-employee-link" onClick={() => onVer(item.id)}>Ver detalle</button>
                         <button type="button" className="tk-employee-link" onClick={() => onEditar(item.id)}>Editar</button></td>
                 </tr>)}</tbody>
             </DataTable> : <div className="tk-employee-empty">

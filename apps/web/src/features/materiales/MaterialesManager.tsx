@@ -77,10 +77,10 @@ export default function MaterialesManager({ puedeGestionar }: Readonly<{ puedeGe
                 </select><Button type="submit">Buscar</Button><Button type="button" onClick={() => filtrar(filtrosIniciales)}>Limpiar</Button>
             </form>
             {cargando ? <StatePanel type="loading" title="Cargando materiales…" /> : datos.items.length === 0 ? <StatePanel type="empty" title="No hay materiales para estos filtros" /> :
-                <DataTable label="Materiales"><thead><tr><th>Material</th><th>Unidad de medida</th><th>Estado</th><th>Acciones</th></tr></thead><tbody>
+                <DataTable label="Materiales"><thead><tr><th>Material</th><th>Unidad de medida</th><th data-align="center">Estado</th><th data-align="actions">Acciones</th></tr></thead><tbody>
                     {datos.items.map(material => <tr key={material.id}>
                         <td data-label="Material"><strong>{material.nombre}</strong><small>{material.codigo}</small></td><td data-label="Unidad">{material.unidadMedida}</td>
-                        <td data-label="Estado"><StatusBadge active={material.activo} /></td><td data-label="Acciones" className="actions">{puedeGestionar && <>
+                        <td data-label="Estado" data-align="center"><StatusBadge active={material.activo} /></td><td data-label="Acciones" data-align="actions" className="actions">{puedeGestionar && <>
                             <Button onClick={() => { setEditando(material.id); setFormulario({ codigo: material.codigo, nombre: material.nombre, unidadMedida: material.unidadMedida }); }}>Editar</Button>
                             <Button onClick={() => setConfirmacion(material)}>{material.activo ? 'Desactivar' : 'Activar'}</Button>
                         </>}</td></tr>)}

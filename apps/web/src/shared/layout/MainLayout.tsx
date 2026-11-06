@@ -1,4 +1,4 @@
-import type { ReactNode } from "react";
+import { useEffect, type ReactNode } from "react";
 import { Header } from "./Header";
 import { Sidebar, type Seccion } from "./Sidebar";
 
@@ -29,12 +29,29 @@ export function MainLayout({
     onLogout,
     accionesHeader,
 }: Readonly<MainLayoutProps>) {
+    useEffect(() => {
+        if (!menuAbierto) return;
+
+        const overflowAnterior = document.body.style.overflow;
+        const cerrarConEscape = (event: KeyboardEvent) => {
+            if (event.key === "Escape") onCloseMenu();
+        };
+
+        document.body.style.overflow = "hidden";
+        document.addEventListener("keydown", cerrarConEscape);
+        return () => {
+            document.body.style.overflow = overflowAnterior;
+            document.removeEventListener("keydown", cerrarConEscape);
+        };
+    }, [menuAbierto, onCloseMenu]);
+
     return (
         <div className="app-shell">
             <Header
                 usuarioNombre={usuarioNombre}
                 onLogout={onLogout}
                 onOpenMenu={onOpenMenu}
+                menuAbierto={menuAbierto}
                 acciones={accionesHeader}
             />
             {menuAbierto && (

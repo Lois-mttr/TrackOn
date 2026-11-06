@@ -3,9 +3,10 @@ import "./shared/styles/ordenes-equipos.css";
 import "./shared/styles/clientes.css";
 import "./shared/styles/empleados.css";
 import "./shared/styles/figma-ui.css";
-import "./shared/styles/responsive.css";
 import "./shared/styles/asignaciones.css";
 import "./shared/styles/operacion.css";
+// Debe permanecer al final: contiene los overrides responsive transversales.
+import "./shared/styles/responsive.css";
 import { useEffect, useState } from "react";
 import EquiposManager from "./features/equipos/EquiposManager";
 import ClientesManager from "./features/clientes/ClientesManager";

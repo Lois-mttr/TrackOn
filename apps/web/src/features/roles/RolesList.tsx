@@ -1,7 +1,8 @@
 import { useState } from 'react'
 import { listarRoles } from './roles.api'
 import type { Rol } from './roles.types'
-import { DataTable } from '../../shared/ui'
+import { DataTable, TablePagination } from '../../shared/ui'
+import { DEFAULT_PAGE_SIZE } from '../../shared/pagination'
 
 type Estado =
   | { tipo: 'inicial' }
@@ -13,12 +14,14 @@ export default function RolesList() {
   const [estado, setEstado] = useState<Estado>({
     tipo: 'inicial',
   })
+  const [pagina, setPagina] = useState(1)
 
   async function cargarRoles() {
     setEstado({ tipo: 'cargando' })
 
     try {
       const roles = await listarRoles()
+      setPagina(1)
       setEstado({ tipo: 'exito', roles })
     } catch {
       setEstado({
@@ -72,7 +75,7 @@ export default function RolesList() {
       )}
 
       {estado.tipo === 'exito' && estado.roles.length > 0 && (
-        <div className="table-container">
+        <div className="roles-table-section">
           <DataTable label="Roles del sistema">
             <caption className="has-text-left mb-2">
               Perfiles y descripción de sus funciones
@@ -87,7 +90,7 @@ export default function RolesList() {
             </thead>
 
             <tbody>
-              {estado.roles.map((rol) => (
+              {estado.roles.slice((pagina - 1) * DEFAULT_PAGE_SIZE, pagina * DEFAULT_PAGE_SIZE).map((rol) => (
                 <tr key={rol.id}>
                   <td data-label="Código">
                     <span className="tag is-link is-light">
@@ -100,6 +103,8 @@ export default function RolesList() {
               ))}
             </tbody>
           </DataTable>
+          <TablePagination pagina={pagina} limite={DEFAULT_PAGE_SIZE} cantidad={Math.min(DEFAULT_PAGE_SIZE, estado.roles.length - (pagina - 1) * DEFAULT_PAGE_SIZE)}
+            total={estado.roles.length} hayMas={pagina * DEFAULT_PAGE_SIZE < estado.roles.length} etiqueta="roles" onPagina={setPagina} />
         </div>
       )}
     </section>

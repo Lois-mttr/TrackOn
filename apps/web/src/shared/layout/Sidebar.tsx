@@ -53,7 +53,8 @@ export function Sidebar({ seccion, onNavigate, abierto, puedeGestionarCuadrillas
     }
 
     return (
-        <aside className={`sidebar figma-sidebar ${abierto ? "sidebar--open" : ""}`}>
+        <aside id="navegacion-principal" aria-label="Navegación principal"
+            className={`sidebar figma-sidebar ${abierto ? "sidebar--open" : ""}`}>
             <div className="figma-sidebar-groups sidebar-scroll-area">
                 <div className="figma-sidebar-group">
                     <p>GESTIÓN OPERATIVA</p>

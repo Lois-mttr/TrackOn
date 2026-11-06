@@ -5,6 +5,7 @@ interface HeaderProps {
     usuarioNombre: string;
     onLogout: () => void;
     onOpenMenu: () => void;
+    menuAbierto: boolean;
     acciones?: ReactNode;
 }
 
@@ -12,7 +13,7 @@ function iniciales(nombre: string): string {
     return nombre.trim().split(/\s+/).slice(0, 2).map(parte => parte[0]?.toUpperCase() ?? "").join("") || "TR";
 }
 
-export function Header({ usuarioNombre, onLogout, onOpenMenu, acciones }: Readonly<HeaderProps>) {
+export function Header({ usuarioNombre, onLogout, onOpenMenu, menuAbierto, acciones }: Readonly<HeaderProps>) {
     const [nombre, rol = "Usuario"] = usuarioNombre.split(" · ");
     const [cuentaAbierta, setCuentaAbierta] = useState(false);
     const cuentaRef = useRef<HTMLDivElement>(null);
@@ -40,7 +41,8 @@ export function Header({ usuarioNombre, onLogout, onOpenMenu, acciones }: Readon
 
     return (
         <header className="topbar figma-topbar">
-            <button type="button" className="menu-toggle" aria-label="Abrir navegación" onClick={onOpenMenu}>
+            <button type="button" className="menu-toggle" aria-label="Abrir navegación"
+                aria-controls="navegacion-principal" aria-expanded={menuAbierto} onClick={onOpenMenu}>
                 <Menu aria-hidden="true" size={21} strokeWidth={1.9} />
             </button>
             <div className="figma-brand-lockup">

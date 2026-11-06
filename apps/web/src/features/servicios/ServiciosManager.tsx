@@ -126,8 +126,8 @@ export default function ServiciosManager({ puedeGestionar = true }: Readonly<Ser
                         <tr>
                             <th>Servicio</th>
                             <th>Descripción</th>
-                            <th>Estado</th>
-                            <th aria-label="Acciones"></th>
+                            <th data-align="center">Estado</th>
+                            <th data-align="actions" aria-label="Acciones"></th>
                         </tr>
                     </thead>
                     <tbody>
@@ -138,12 +138,12 @@ export default function ServiciosManager({ puedeGestionar = true }: Readonly<Ser
                                     <span>{servicio.codigo}</span>
                                 </td>
                                 <td data-label="Descripción">{servicio.descripcion ?? "Sin descripción"}</td>
-                                <td data-label="Estado">
+                                <td data-label="Estado" data-align="center">
                                     <span className={`status ${servicio.activo ? "active" : "inactive"}`}>
                                         {servicio.activo ? "Activo" : "Inactivo"}
                                     </span>
                                 </td>
-                                <td data-label="Acciones" className="actions">
+                                <td data-label="Acciones" data-align="actions" className="actions">
                                     {puedeGestionar && (
                                         <>
                                             <button type="button" onClick={() => editar(servicio)}>Editar</button>

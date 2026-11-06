@@ -261,22 +261,22 @@ export default function OrdenesManager({ puedeGestionar = true, ordenInicial, cr
             </div>
         );
         return (
-            <div className="table-wrap">
+            <div className="table-wrap" role="region" aria-label="Tabla: Órdenes" tabIndex={0}>
                 <table className="tk-orders-table">
                     <thead>
                         <tr>
-                            <th>OT</th>
+                            <th data-align="center">OT</th>
                             <th>Cliente / solicitud</th>
                             <th>Asignación</th>
-                            <th>Programación</th>
-                            <th>Estado</th>
-                            <th>Acciones</th>
+                            <th data-align="center">Programación</th>
+                            <th data-align="center">Estado</th>
+                            <th data-align="actions">Acciones</th>
                         </tr>
                     </thead>
                     <tbody>
                         {pagina.items.map(orden => (
                             <tr key={orden.id}>
-                                <td data-label="OT">
+                                <td data-label="OT" data-align="center">
                                     <strong className="tk-ot-number">OT-{orden.numero}</strong>
                                     <small>{orden.prioridad}</small>
                                 </td>
@@ -290,16 +290,16 @@ export default function OrdenesManager({ puedeGestionar = true, ordenInicial, cr
                                         ? `${orden.asignaciones[0].empleadoResponsable.persona.firstName} ${orden.asignaciones[0].empleadoResponsable.persona.firstLastName}`
                                         : orden.ubicacionNombreRegistrado}</small>
                                 </td>
-                                <td data-label="Programación">
+                                <td data-label="Programación" data-align="center">
                                     <strong>{orden.fechaProgramada ? fecha(orden.fechaProgramada) : 'Sin programar'}</strong>
                                     <small>{orden.fechaProgramada ? new Intl.DateTimeFormat('es-NI', { timeStyle: 'short' }).format(new Date(orden.fechaProgramada)) : '—'}</small>
                                 </td>
-                                <td data-label="Estado">
+                                <td data-label="Estado" data-align="center">
                                     <span className="tk-status-badge" data-status={orden.estadoCodigo}>
                                         {nombreEstado(orden.estadoCodigo)}
                                     </span>
                                 </td>
-                                <td data-label="Acciones">
+                                <td data-label="Acciones" data-align="actions">
                                     <OrdenAcciones orden={orden} puedeGestionar={puedeGestionar} onAction={tipo => abrirAccion(orden, tipo)} />
                                 </td>
                             </tr>

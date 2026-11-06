@@ -265,15 +265,15 @@ export default function ClientesManager({ puedeGestionar }: Readonly<Props>) {
                     {cargando ? <p className="empty">Cargando clientes…</p> : filtrados.length === 0 ?
                         <p className="empty">No hay clientes que coincidan con los filtros.</p> :
                         <DataTable className="tk-clientes-tabla" label="Clientes">
-                            <thead><tr><th>Código</th><th>Cliente</th><th>Tipo</th><th>Estado</th><th>Acción</th></tr></thead>
+                            <thead><tr><th>Código</th><th>Cliente</th><th>Tipo</th><th data-align="center">Estado</th><th data-align="actions">Acción</th></tr></thead>
                             <tbody>{filtrados.map(cliente => <tr key={cliente.id}>
                                 <td data-label="Código"><strong>{cliente.codigo}</strong></td>
                                 <td data-label="Cliente"><strong>{nombreCliente(cliente)}</strong>
                                     <span>{cliente.correoComercial || cliente.telefonoComercial || "Sin contacto comercial"}</span></td>
                                 <td data-label="Tipo">{etiquetaTipo(cliente)}</td>
-                                <td data-label="Estado"><span className={`status ${cliente.activo ? "active" : "inactive"}`}>
+                                <td data-label="Estado" data-align="center"><span className={`status ${cliente.activo ? "active" : "inactive"}`}>
                                     {cliente.activo ? "Activo" : "Inactivo"}</span></td>
-                                <td data-label="Acción"><button type="button" className="secondary-button"
+                                <td data-label="Acción" data-align="actions" className="actions"><button type="button" className="secondary-button"
                                     onClick={() => abrirCliente(cliente.id)}>Ver detalle</button></td>
                             </tr>)}</tbody>
                         </DataTable>}
